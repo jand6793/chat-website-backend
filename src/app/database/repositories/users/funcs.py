@@ -19,7 +19,7 @@ async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = Fal
 def create_user_criteria_string(
     user_criteria: userModels.UserCriteria, logging_in: bool
 ):
-    criteria_tuple = (
+    criteria_results = (
         baseModels.create_similar_to_string(
             item_type,
             "full_name",
@@ -37,8 +37,8 @@ def create_user_criteria_string(
         ),
         *baseModels.create_base_property_criterias(item_type, user_criteria),
     )
-    criterias = [criteria for criteria in criteria_tuple if criteria]
-    return " AND ".join(criterias) if criterias else ""
+    criteria_strs = [criteria for criteria in criteria_results if criteria]
+    return " AND ".join(criteria_strs) if criteria_strs else ""
 
 
 def create_username_criteria_string(
