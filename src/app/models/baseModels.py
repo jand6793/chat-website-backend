@@ -23,7 +23,7 @@ def validate_all_properties_are_specified(values: dict[str, Any]):
 
 class IdCriteria(pydantic.BaseModel):
     id: int | None = None
-    exlude_id: bool = False
+    exclude_id: bool = False
 
     _validate_id = pydantic.validator("id", allow_reuse=True)(
         validatorFuncs.validate_64_bit_id
@@ -109,7 +109,7 @@ def create_base_property_criterias(
     item: PaginationBaseProperties | IdCriteria,
 ):
     return [
-        create_id_string(item_type, item.id),
+        create_id_string(item_type, item.id, item.exclude_id),
         create_datetime_datetime_string(
             item_type, "created", item.created, item.exclude_created
         ),
@@ -141,8 +141,9 @@ def create_equals_non_string_string(
     return wrap_statement_if_exclude_string(statement, exclude)
 
 
-def create_id_string(item_type: str, id: int):
-    return f"({item_type}.id = {id})" if id else ""
+def create_id_string(item_type: str, id: int, exclude: bool = False):
+    query_string = f"({item_type}.id = {id})" if id else ""
+    return wrap_statement_if_exclude_string(query_string, exclude)
 
 
 def create_datetime_datetime_string(
