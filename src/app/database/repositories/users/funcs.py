@@ -60,15 +60,6 @@ def create_username_criteria_string(
     )
 
 
-def create_title_criteria_string(title: str | None, exclude: bool = False):
-    if title:
-        titleFuncs.get_titles(titleModels.TitleCriteria(name=title))
-        statement = baseModels.create_similar_to_string(ITEM_TYPE, "title", title)
-    else:
-        statement = ""
-    return baseModels.wrap_statement_if_exclude_string(statement, exclude)
-
-
 async def create_users(users: userModels.UsersCreate, return_results: bool = False):
     users_to_db = [create_user_to_db(user) for user in users.users]
     results = await crud.insert(ITEM_TYPE, users_to_db, return_results)
