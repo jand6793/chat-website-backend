@@ -122,14 +122,14 @@ def create_base_property_criterias(
 def create_similar_to_string(
     item_type: str, property: str, value: str | None, exclude: bool = False
 ):
-    statement = f"{item_type}.{property} SIMILAR TO '%{value}%'" if value else ""
+    statement = f"({item_type}.{property} SIMILAR TO '%%s%')" if value else ""
     return wrap_statement_if_exclude_string(statement, exclude)
 
 
 def create_equals_string_string(
     item_type: str, property: str, value: str | None, exclude: bool = False
 ):
-    statement = f"{item_type}.{property} = '{value}'" if value else ""
+    statement = f"({item_type}.{property} = '%s')" if value else ""
     return wrap_statement_if_exclude_string(statement, exclude)
 
 
@@ -158,7 +158,7 @@ def create_datetime_datetime_string(
 
 
 def wrap_statement_if_exclude_string(statement: str, exclude: bool):
-    return f"NOT ({statement})" if statement and exclude else statement
+    return f"(NOT {statement})" if statement and exclude else statement
 
 
 def create_deleted_criteria_string(item_type: str, deleted: bool | None):

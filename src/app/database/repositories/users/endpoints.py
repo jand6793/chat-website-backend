@@ -1,5 +1,4 @@
 import datetime
-from typing import Any
 
 import fastapi
 from fastapi import security, status
@@ -7,7 +6,6 @@ from pydantic import error_wrappers
 
 from app.services import authentication
 from app.models import baseModels, modelExceptionFuncs
-from app.models import validatorFuncs
 from app.core import config
 from app.database.repositories.users import funcs as userFuncs, models as userModels
 

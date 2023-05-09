@@ -4,14 +4,12 @@ from app.database.repositories.users import models as userModels
 from app.models import baseModels
 from app.services import authentication
 from app.database.connection import crud
-
-
-item_type = "users"
+from app.database.repositories.users import ITEM_TYPE
 
 
 async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):
-    criteria = create_user_criteria_string(user_criteria, is_login)
-    sort_by = baseModels.create_sort_by(item_type, user_criteria.sort_by)
+    criteria, values = create_user_criteria_string(user_criteria, is_login)
+    sort_by = baseModels.create_sort_by(ITEM_TYPE, user_criteria.sort_by)
 
     None
 
@@ -21,7 +19,7 @@ def create_user_criteria_string(
 ):
     criteria_results = (
         baseModels.create_similar_to_string(
-            item_type,
+            ITEM_TYPE,
             "full_name",
             user_criteria.full_name,
             user_criteria.exclude_full_name,
@@ -30,25 +28,33 @@ def create_user_criteria_string(
             user_criteria.username, logging_in, user_criteria.exclude_username
         ),
         baseModels.create_similar_to_string(
-            item_type,
+            ITEM_TYPE,
             "description",
             user_criteria.description,
             user_criteria.exclude_description,
         ),
-        *baseModels.create_base_property_criterias(item_type, user_criteria),
+        *baseModels.create_base_property_criterias(ITEM_TYPE, user_criteria),
     )
-    criteria_strs = [criteria for criteria in criteria_results if criteria]
-    return " AND ".join(criteria_strs) if criteria_strs else ""
+    criteria = [criteria for criteria in criteria_results if criteria]
+    joined_criteria = " AND ".join(criteria) if criteria else ""
+    values = get_trues(
+        (user_criteria.full_name, user_criteria.username, user_criteria.description) # See if there is any more you can refactor
+    )
+    return joined_criteria, values
+
+
+def get_trues(values: list[Any]):
+    return [v for v in values if v] # Extract this out into a common file
 
 
 def create_username_criteria_string(
     username: str | None, logging_in: bool, exclude: bool = False
 ):
     return (
-        baseModels.create_equals_string_string(item_type, "username", username, exclude)
+        baseModels.create_equals_string_string(ITEM_TYPE, "username", username, exclude)
         if logging_in
         else baseModels.create_similar_to_string(
-            item_type, "username", username, exclude
+            ITEM_TYPE, "username", username, exclude
         )
     )
 
@@ -56,7 +62,7 @@ def create_username_criteria_string(
 def create_title_criteria_string(title: str | None, exclude: bool = False):
     if title:
         titleFuncs.get_titles(titleModels.TitleCriteria(name=title))
-        statement = baseModels.create_similar_to_string(item_type, "title", title)
+        statement = baseModels.create_similar_to_string(ITEM_TYPE, "title", title)
     else:
         statement = ""
     return baseModels.wrap_statement_if_exclude_string(statement, exclude)
@@ -64,7 +70,7 @@ def create_title_criteria_string(title: str | None, exclude: bool = False):
 
 async def create_users(users: userModels.UsersCreate, return_results: bool = False):
     users_to_db = [create_user_to_db(user) for user in users.users]
-    results = await crud.insert(item_type, users_to_db, return_results)
+    results = await crud.insert(ITEM_TYPE, users_to_db, return_results)
     return remove_hashed_passwords(results.records)
 
 
@@ -81,7 +87,7 @@ def create_user_to_db(user: userModels.UserCreate):
 def update_user(user: userModels.UserUpdate, return_results: bool = True):
     user_to_db = create_user_update_to_db(user)
     return storageEndpointFuncs.update_item(
-        user.id, item_type, user_to_db, return_results
+        user.id, ITEM_TYPE, user_to_db, return_results
     )
 
 
@@ -103,4 +109,4 @@ def delete_user(
 ):
     ids = baseModels.Ids(ids=(user_id.id,))
     currentStateFuncs.delete_current_state(user_id, delete)
-    return storageEndpointFuncs.delete_items(item_type, ids, delete, return_results)
+    return storageEndpointFuncs.delete_items(ITEM_TYPE, ids, delete, return_results)
