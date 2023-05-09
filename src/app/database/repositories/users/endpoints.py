@@ -101,7 +101,7 @@ async def update_user(
     return_results: bool = False,
     user: userModels.User = fastapi.Depends(authentication.get_current_user),
 ):
-    return userFuncs.update_user(user_update, return_results)
+    return await userFuncs.update_user(user_update, return_results)
 
 
 @router.delete("/users", status_code=status.HTTP_202_ACCEPTED)
