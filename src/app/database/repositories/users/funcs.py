@@ -4,14 +4,16 @@ from app.database.repositories.users import models as userModels
 from app.models import baseModels
 from app.services import authentication
 from app.database.connection import crud
-from app.database.repositories.users import ITEM_TYPE
+from app.database.repositories.users import ITEM_TYPE, BASE_PROPERTIES
+from app import common
 
 
 async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):
     criteria, values = create_user_criteria_string(user_criteria, is_login)
     sort_by = baseModels.create_sort_by(ITEM_TYPE, user_criteria.sort_by)
-
-    None
+    properties = BASE_PROPERTIES + (["hashed_password"] if is_login else [])
+    results = await crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
+    return results.records
 
 
 def create_user_criteria_string(
@@ -37,14 +39,14 @@ def create_user_criteria_string(
     )
     criteria = [criteria for criteria in criteria_results if criteria]
     joined_criteria = " AND ".join(criteria) if criteria else ""
-    values = get_trues(
-        (user_criteria.full_name, user_criteria.username, user_criteria.description) # See if there is any more you can refactor
+    values = common.get_true_values(
+        (
+            user_criteria.full_name,
+            user_criteria.username,
+            user_criteria.description,
+        )  # See if there is any more you can refactor
     )
     return joined_criteria, values
-
-
-def get_trues(values: list[Any]):
-    return [v for v in values if v] # Extract this out into a common file
 
 
 def create_username_criteria_string(

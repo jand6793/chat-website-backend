@@ -7,7 +7,7 @@ import uvicorn
 sys.path.append(str(Path.cwd() / "src"))
 
 from app.api import routes
-from app.core import config
+from app.core.config import config
 from app.database.connection import database
 
 
@@ -23,4 +23,4 @@ def get_application():
 app = get_application()
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=config.config.ip_address, port=config.config.port)
+    uvicorn.run(app, host=config.ip_address, port=config.port)

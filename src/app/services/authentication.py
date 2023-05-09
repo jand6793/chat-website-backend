@@ -7,7 +7,7 @@ import jose
 from jose import jwt
 from passlib import context
 
-from app.core import config
+from app.core.config import config
 from app.database.repositories.users import funcs as userFuncs
 from app.database.repositories.users import models as userModels
 
@@ -49,7 +49,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
     to_encode["exp"] = expire
     return jwt.encode(
-        to_encode, config.config.secret_key, algorithm=config.config.jsw_algorithm
+        to_encode, config.secret_key.get_secret_value(), algorithm=config.jsw_algorithm
     )
 
 
@@ -63,7 +63,7 @@ credentials_exception = fastapi.HTTPException(
 async def get_current_user(token: str = fastapi.Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(
-            token, config.config.secret_key, algorithms=[config.config.jsw_algorithm]
+            token, config.secret_key.get_secret_value(), algorithms=[config.jsw_algorithm]
         )
 
         username: str = payload.get("sub")

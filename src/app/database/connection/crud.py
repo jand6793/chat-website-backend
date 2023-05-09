@@ -9,19 +9,17 @@ async def select(
     table: str,
     properties: list[str],
     criteria: str = "",
+    values: list[str] = [],
     order_by: str = "",
 ):
     query = get_select_query(table, properties, criteria, order_by)
-    return await exec(query, fetch=True) # You can continue here but just make sure that you hangle sql injection
+    return await exec(query, fetch=True, params_seq=values)
 
 
 def get_select_query(
-    table: str,
-    properties: list[str],
-    criteria: str = "",
-    order_by: str = "",
+    table: str, properties: list[str], criteria: str = "", order_by: str = ""
 ):
-    return f"""
+    query = f"""
         SELECT
             {', '.join(properties)}
         FROM
@@ -29,6 +27,7 @@ def get_select_query(
         {f'WHERE {criteria}' if criteria else ''}
         {f'ORDER BY {order_by}' if order_by else ''}
     """
+    return wrap_query_as_json(query)
 
 
 async def insert(
@@ -63,4 +62,13 @@ def get_insert_query(table: str, columns: list[str], return_results: bool):
         VALUES
             ({', '.join(['%s'] * len(columns))})
         {f'RETURNING to_jsonb({table}.*)' if return_results else ''}
+    """
+
+
+def wrap_query_as_json(query: str):
+    return f"""
+        SELECT
+            jsonb_agg(results)
+        FROM
+            ({query}) results
     """

@@ -6,7 +6,7 @@ from pydantic import error_wrappers
 
 from app.services import authentication
 from app.models import baseModels, modelExceptionFuncs
-from app.core import config
+from app.core.config import config
 from app.database.repositories.users import funcs as userFuncs, models as userModels
 
 router = fastapi.APIRouter()
@@ -20,7 +20,7 @@ async def login_for_access_token(
         form_data.username, form_data.password
     ):
         access_token_expires = datetime.timedelta(
-            minutes=config.config.access_token_expire_minutes
+            minutes=config.access_token_expire_minutes
         )
         access_token = authentication.create_access_token(
             data={"sub": user.username}, expires_delta=access_token_expires
@@ -44,6 +44,7 @@ async def read_users_me(
 @router.get("/users", status_code=status.HTTP_200_OK)
 async def get_users(
     id: int | None = None,
+    exclude_id: bool = False,
     full_name: str | None = None,
     exclude_full_name: bool = False,
     username: str | None = None,
@@ -62,6 +63,7 @@ async def get_users(
     try:
         user_criteria = userModels.UserCriteria(
             id=id,
+            exclude_id=exclude_id,
             full_name=full_name,
             exclude_full_name=exclude_full_name,
             username=username,
@@ -78,7 +80,14 @@ async def get_users(
     except error_wrappers.ValidationError as e:
         modelExceptionFuncs.raise_model_exception(e)
     else:
-        return {"results": userFuncs.get_users(user_criteria)}
+        items = await userFuncs.get_users(user_criteria)
+        if items:
+            return {"items": items}
+        else:
+            raise fastapi.HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No users found with the given criteria.",
+            )
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED)

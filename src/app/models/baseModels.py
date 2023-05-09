@@ -23,6 +23,7 @@ def validate_all_properties_are_specified(values: dict[str, Any]):
 
 class IdCriteria(pydantic.BaseModel):
     id: int | None = None
+    exlude_id: bool = False
 
     _validate_id = pydantic.validator("id", allow_reuse=True)(
         validatorFuncs.validate_64_bit_id
@@ -129,7 +130,7 @@ def create_similar_to_string(
 def create_equals_string_string(
     item_type: str, property: str, value: str | None, exclude: bool = False
 ):
-    statement = f"({item_type}.{property} = '%s')" if value else ""
+    statement = f"({item_type}.{property} = %s)" if value else ""
     return wrap_statement_if_exclude_string(statement, exclude)
 
 

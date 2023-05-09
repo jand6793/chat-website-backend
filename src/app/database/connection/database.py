@@ -85,11 +85,11 @@ async def _exec(
             try:
                 if len(parameters) > 1:
                     await cur.executemany(query, parameters, returning=fetch)
-                elif len(parameters) == 1:
-                    await cur.execute(query, parameters[0])
+                elif parameters:
+                    await cur.execute(query, parameters)
                 else:
                     await cur.execute(query)
             except Exception as e:
                 return ExecResult(error=e)
             results = await cur.fetchall() if fetch else []
-    return ExecResult([r[0] for r in results])
+    return ExecResult([r[0][0] for r in results] if results[0][0] else [])
