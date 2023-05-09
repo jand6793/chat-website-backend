@@ -13,7 +13,7 @@ passlib = {extras = ["bcrypt"], version = "*"}
 python-jose = "*"
 psycopg-pool = "*"
 psycopg = {extras = ["binary"], version = "*"}
-nuitka = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 black = "*"

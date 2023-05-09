@@ -39,13 +39,12 @@ def create_user_criteria_string(
     )
     criteria = [criteria for criteria in criteria_results if criteria]
     joined_criteria = " AND ".join(criteria) if criteria else ""
-    values = common.get_true_values(
-        (
-            user_criteria.full_name,
-            user_criteria.username,
-            user_criteria.description,
-        )  # See if there is any more you can refactor
+    all_values = (
+        user_criteria.full_name,
+        user_criteria.username,
+        user_criteria.description,
     )
+    values = common.get_true_values(all_values)
     return joined_criteria, values
 
 

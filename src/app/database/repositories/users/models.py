@@ -33,7 +33,6 @@ class UserBase(pydantic.BaseModel):
 class User(UserBase, baseModels.IdDeleted):
     created: datetime.datetime
     last_modified: datetime.datetime
-    deleted: bool
 
 
 class UserInDB(User):
