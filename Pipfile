@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+jwt = "*"
+bcrypt = "*"
+wheel = "*"
+fastapi = {extras = ["all"], version = "*"}
+python-multipart = "*"
+passlib = {extras = ["bcrypt"], version = "*"}
+python-jose = "*"
+psycopg-pool = "*"
+psycopg = {extras = ["binary"], version = "*"}
+nuitka = "*"
+
+[dev-packages]
+black = "*"
+
+[requires]
+python_version = "3.11"

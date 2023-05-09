@@ -1,0 +1,5 @@
+.env
+.venv
+server.build
+server.dist
+**/__pycache__/
