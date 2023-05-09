@@ -1,9 +1,8 @@
-import datetime
+from datetime import datetime
 import time
 from typing import Any
 
 import pydantic
-
 
 from app.models import validatorFuncs
 
@@ -79,9 +78,9 @@ class PaginationBase(pydantic.BaseModel):
 
 
 class BasePropertiesCriteria(pydantic.BaseModel):
-    created: tuple[datetime.datetime, datetime.datetime] | None = None
+    created: tuple[datetime, datetime] | None = None
     exclude_created: bool = False
-    last_modified: tuple[datetime.datetime, datetime.datetime] | None = None
+    last_modified: tuple[datetime, datetime] | None = None
     exclude_last_modified: bool = False
     deleted: bool | None = None
 
@@ -108,7 +107,7 @@ def create_base_property_criterias(
     item_type: str,
     item: PaginationBaseProperties | IdCriteria,
 ):
-    return (
+    return [
         create_id_string(item_type, item.id),
         create_datetime_datetime_string(
             item_type, "created", item.created, item.exclude_created
@@ -117,7 +116,7 @@ def create_base_property_criterias(
             item_type, "last_modified", item.last_modified, item.exclude_last_modified
         ),
         create_deleted_criteria_string(item_type, item.deleted),
-    )
+    ]
 
 
 def create_similar_to_string(
@@ -142,22 +141,18 @@ def create_equals_non_string_string(
 
 
 def create_id_string(item_type: str, id: int):
-    return f"{item_type}.id = {id}" if id else ""
+    return f"({item_type}.id = {id})" if id else ""
 
 
 def create_datetime_datetime_string(
     item_type: str,
     property: str,
-    range: tuple[datetime.datetime, datetime.datetime]
-    | tuple[time.struct_time, time.struct_time]
-    | None,
+    range: tuple[datetime, datetime] | tuple[time.struct_time, time.struct_time] | None,
     exclude: bool = False,
 ):
     base_str = f"{item_type}.{property}"
     statement = (
-        (f"{base_str} >= '{range[0]}' AND {base_str} <= '{range[1]}'")
-        if range is not None
-        else ""
+        f"({base_str} >= '{range[0]}' AND {base_str} <= '{range[1]}')" if range else ""
     )
     return wrap_statement_if_exclude_string(statement, exclude)
 
