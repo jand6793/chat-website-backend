@@ -23,7 +23,7 @@ The key features are:
 
 ## Opinions
 
-"_I've been working with the **Python-based social media chat backend** that [Your Name] developed, and I must say, it's truly impressive. The backend is **well-structured**, **efficient**, and **easy to integrate** with other systems. It has made the development process a breeze for our team._
+"_I've been working with the **Python-based social media chat backend** that CS-351 developed, and I must say, it's truly impressive. The backend is **well-structured**, **efficient**, and **easy to integrate** with other systems. It has made the development process a breeze for our team._
 
 <div style="text-align: right; margin-right: 10%;">Jane Doe - <strong>Software Engineer at Big Tech Company</strong> <a href="#" target="_blank"><small>(ref)</small></a></div>
 
@@ -47,7 +47,7 @@ The key features are:
 
 ---
 
-"_As someone who has worked with various chat backend systems, I am genuinely impressed with the **Python social media chat backend** developed by [Your Name]. The ease of integration, performance, and overall quality have exceeded my expectations. Keep up the great work!_
+"_As someone who has worked with various chat backend systems, I am genuinely impressed with the **Python social media chat backend** developed by CS-351. The ease of integration, performance, and overall quality have exceeded my expectations. Keep up the great work!_
 
 <div style="text-align: right; margin-right: 10%;">Carol Wilson - <strong>Software Architect at Prominent Software Company</strong> <a href="#" target="_blank"><small>(ref)</small></a></div>
 
