@@ -3,8 +3,6 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path.cwd() / "src"))
-
-from app.core.config import config
 from app.database.connection.database import (
     open_backend_pool,
     postgres_exec,
