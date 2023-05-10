@@ -23,7 +23,20 @@ async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = Fal
 def create_user_criteria_string(
     user_criteria: userModels.UserCriteria, logging_in: bool
 ):
-    criteria_results = (
+    criteria_results = create_criteria_strs(user_criteria, logging_in)
+    criteria = common.get_true_values(criteria_results)
+    joined_criteria = join_with_and(criteria)
+    all_values = [
+        user_criteria.full_name,
+        user_criteria.username,
+        user_criteria.description,
+    ]
+    values = common.get_true_values(all_values)
+    return joined_criteria, values
+
+
+def create_criteria_strs(user_criteria: userModels.UserCriteria, logging_in: bool):
+    return [
         baseModels.create_similar_to_string(
             ITEM_TYPE,
             "full_name",
@@ -39,17 +52,11 @@ def create_user_criteria_string(
             user_criteria.description,
             user_criteria.exclude_description,
         ),
-        *baseModels.create_base_property_criterias(ITEM_TYPE, user_criteria),
-    )
-    criteria = [criteria for criteria in criteria_results if criteria]
-    joined_criteria = " AND ".join(criteria) if criteria else ""
-    all_values = (
-        user_criteria.full_name,
-        user_criteria.username,
-        user_criteria.description,
-    )
-    values = common.get_true_values(all_values)
-    return joined_criteria, values
+    ] + baseModels.create_base_property_criterias(ITEM_TYPE, user_criteria)
+
+
+def join_with_and(criteria: list[str]):
+    return " AND ".join(criteria) if criteria else ""
 
 
 def create_username_criteria_string(
