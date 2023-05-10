@@ -62,14 +62,19 @@ def item_to_values(item: dict[Any, Any]):
 
 
 def get_insert_query(table: str, columns: list[str], return_results: bool):
+    value_place_holders = create_value_place_holders(columns)
     return f"""
         INSERT INTO
             chat.{table}
             ({join_by_comma(columns)})
         VALUES
-            ({join_by_comma(["%s"] * len(columns))})
+            ({join_by_comma(value_place_holders)})
         {f"RETURNING to_jsonb({table}.*)" if return_results else ""}
     """
+
+
+def create_value_place_holders(columns: list[str]):
+    return ["%s"] * len(columns)
 
 
 async def update(
@@ -91,18 +96,20 @@ async def update(
 def get_update_query(
     table: str, columns: list[str], criteria: str, return_results: bool
 ):
+    place_holders = create_placeholders(columns)
+    joined_place_holders = join_by_comma(place_holders)
     return f"""
         UPDATE
             chat.{table}
         SET
-            {join_by_comma(columns)}
+            {joined_place_holders}
         {f"WHERE {criteria}" if criteria else ""}
         {f"RETURNING to_jsonb({table}.*)" if return_results else ""}
     """
 
 
 def join_by_comma(columns: list[str]):
-    return ", ".join(create_placeholders(columns))
+    return ", ".join(columns)
 
 
 def create_placeholders(columns: list[str]):
