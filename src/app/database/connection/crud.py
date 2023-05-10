@@ -19,7 +19,7 @@ async def select(
 def get_select_query(table: str, properties: list[str], criteria: str, order_by: str):
     query = f"""
         SELECT
-            {", ".join(properties)}
+            {join_by_comma(properties)}
         FROM
             chat.{table}
         {f"WHERE {criteria}" if criteria else ""}
@@ -65,9 +65,9 @@ def get_insert_query(table: str, columns: list[str], return_results: bool):
     return f"""
         INSERT INTO
             chat.{table}
-            ({", ".join(columns)})
+            ({join_by_comma(columns)})
         VALUES
-            ({", ".join(["%s"] * len(columns))})
+            ({join_by_comma(["%s"] * len(columns))})
         {f"RETURNING to_jsonb({table}.*)" if return_results else ""}
     """
 
@@ -95,10 +95,22 @@ def get_update_query(
         UPDATE
             chat.{table}
         SET
-            {", ".join([f"{column} = %s" for column in columns])}
+            {join_by_comma(columns)}
         {f"WHERE {criteria}" if criteria else ""}
         {f"RETURNING to_jsonb({table}.*)" if return_results else ""}
     """
+
+
+def join_by_comma(columns: list[str]):
+    return ", ".join(create_placeholders(columns))
+
+
+def create_placeholders(columns: list[str]):
+    return [create_placeholder(column) for column in columns]
+
+
+def create_placeholder(column: str):
+    return f"{column} = %s"
 
 
 def delete(table: str, item_id: int, delete: bool, return_results: bool = False):
