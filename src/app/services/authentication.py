@@ -63,7 +63,9 @@ credentials_exception = fastapi.HTTPException(
 async def get_current_user(token: str = fastapi.Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(
-            token, config.secret_key.get_secret_value(), algorithms=[config.jsw_algorithm]
+            token,
+            config.secret_key.get_secret_value(),
+            algorithms=[config.jsw_algorithm],
         )
 
         username: str = payload.get("sub")

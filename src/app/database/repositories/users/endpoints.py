@@ -101,7 +101,14 @@ async def update_user(
     return_results: bool = False,
     user: userModels.User = fastapi.Depends(authentication.get_current_user),
 ):
-    return await userFuncs.update_user(user_update, return_results)
+    items = await userFuncs.update_user(user_update, return_results)
+    if items.records:
+        return items.records
+    else:
+        raise fastapi.HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No users found with the given id",
+        )
 
 
 @router.delete("/users", status_code=status.HTTP_202_ACCEPTED)

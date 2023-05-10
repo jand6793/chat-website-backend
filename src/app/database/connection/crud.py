@@ -65,6 +65,35 @@ def get_insert_query(table: str, columns: list[str], return_results: bool):
     """
 
 
+async def update(
+    table: str,
+    item_id: int,
+    item: BaseModel | dict[Any, Any],
+    return_results: bool = False,
+):
+    item_dicts = items_to_dicts([item])
+    columns = items_to_columns(item_dicts)
+    criteria = f"id = {item_id}"
+    query = get_update_query(
+        table, columns, criteria=criteria, return_results=return_results
+    )
+    values = items_to_values(item_dicts)[0]
+    return await exec(query, values, auto_commit=True, fetch=return_results)
+
+
+def get_update_query(
+    table: str, columns: list[str], criteria: str = "", return_results: bool = False
+):
+    return f"""
+        UPDATE
+            chat.{table}
+        SET
+            {', '.join([f'{column} = %s' for column in columns])}
+        {f'WHERE {criteria}' if criteria else ''}
+        {f'RETURNING to_jsonb({table}.*)' if return_results else ''}
+    """
+
+
 def wrap_query_as_json(query: str):
     return f"""
         SELECT

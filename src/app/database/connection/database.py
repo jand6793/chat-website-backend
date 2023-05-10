@@ -92,4 +92,16 @@ async def _exec(
             except Exception as e:
                 return ExecResult(error=e)
             results = await cur.fetchall() if fetch else []
-    return ExecResult([r[0][0] for r in results] if results[0][0] else [])
+    return ExecResult(format_results(results))
+
+
+def format_results(results: list[Any]) -> list[dict[str, Any]]:
+    if not (results and results[0][0]):
+        return []
+    elif isinstance(results[0], tuple):
+        if isinstance(results[0][0], list):
+            return [r[0][0] for r in results]
+        else:
+            return [r[0] for r in results]
+    else:
+        return [r[0][0] for r in results]

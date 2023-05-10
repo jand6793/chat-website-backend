@@ -76,10 +76,10 @@ def create_user_to_db(user: userModels.UserCreate):
     return userModels.UserToDB(**combined_user)
 
 
-def update_user(user: userModels.UserUpdate, return_results: bool = True):
+async def update_user(user: userModels.UserUpdate, return_results: bool = True):
     user_to_db = create_user_update_to_db(user)
-    return storageEndpointFuncs.update_item(
-        user.id, ITEM_TYPE, user_to_db, return_results
+    return await crud.update(
+        ITEM_TYPE, user.id, user_to_db.dict(exclude_unset=True), return_results
     )
 
 
