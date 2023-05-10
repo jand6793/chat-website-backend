@@ -1,22 +1,21 @@
 import datetime
 
-import fastapi
-from fastapi import security, status, Path
-from pydantic import error_wrappers
+from fastapi import security, status, APIRouter, HTTPException, Depends, Query
 from psycopg import errors as pg_errors
+from pydantic import error_wrappers
 
-from app.services import authentication
-from app.models import baseModels, modelExceptionFuncs
-from app.models.validatorFuncs import ValidId
 from app.core.config import config
 from app.database.repositories.users import funcs as userFuncs, models as userModels
+from app.models import modelExceptionFuncs
+from app.models.validatorFuncs import ValidId
+from app.services import authentication
 
-router = fastapi.APIRouter()
+router = APIRouter()
 
 
 @router.post("/token", response_model=userModels.Token)
 async def login_for_access_token(
-    form_data: security.OAuth2PasswordRequestForm = fastapi.Depends(),
+    form_data: security.OAuth2PasswordRequestForm = Depends(),
 ):
     if user := await authentication.authenticate_user(
         form_data.username, form_data.password
@@ -29,7 +28,7 @@ async def login_for_access_token(
         )
         return {"access_token": access_token, "token_type": "bearer"}
     else:
-        raise fastapi.HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
@@ -38,7 +37,7 @@ async def login_for_access_token(
 
 @router.get("/users/me", response_model=userModels.User)
 async def read_users_me(
-    current_user: userModels.User = fastapi.Depends(authentication.get_current_user),
+    current_user: userModels.User = Depends(authentication.get_current_user),
 ):
     return current_user
 
@@ -53,14 +52,13 @@ async def get_users(
     exclude_username: bool = False,
     description: str | None = None,
     exclude_description: bool = False,
-    created: tuple[datetime.datetime, datetime.datetime] | None = fastapi.Query(None),
+    created: tuple[datetime.datetime, datetime.datetime] | None = Query(None),
     exclude_created: bool = False,
-    last_modified: tuple[datetime.datetime, datetime.datetime]
-    | None = fastapi.Query(None),
+    last_modified: tuple[datetime.datetime, datetime.datetime] | None = Query(None),
     exclude_last_modified: bool = False,
     deleted: bool | None = None,
     sort_by: str | None = None,
-    user: userModels.User = fastapi.Depends(authentication.get_current_user),
+    user: userModels.User = Depends(authentication.get_current_user),
 ):
     try:
         user_criteria = userModels.UserCriteria(
@@ -86,7 +84,7 @@ async def get_users(
         if items:
             return {"items": items}
         else:
-            raise fastapi.HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No users found with the given criteria.",
             )
@@ -98,12 +96,12 @@ async def create_user(new_user: userModels.UserCreate, return_results: bool = Fa
     if not results.error:
         return results.records[0]
     if isinstance(results.error, pg_errors.UniqueViolation):
-        raise fastapi.HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with the given username already exists.",
         )
     else:
-        raise fastapi.HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="An error occurred while creating the user.",
         )
@@ -114,13 +112,13 @@ async def update_user(
     user_update: userModels.UserUpdate,
     user_id: int = ValidId,
     return_results: bool = False,
-    user: userModels.User = fastapi.Depends(authentication.get_current_user),
+    user: userModels.User = Depends(authentication.get_current_user),
 ):
     items = await userFuncs.update_user(user_id, user_update, return_results)
     if items.records:
         return items.records[0]
     else:
-        raise fastapi.HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No users found with the given id",
         )
@@ -131,6 +129,12 @@ async def delete_user(
     user_id: int = ValidId,
     delete: bool = False,
     return_results: bool = False,
-    user: userModels.User = fastapi.Depends(authentication.get_current_user),
+    user: userModels.User = Depends(authentication.get_current_user),
 ):
-    return await userFuncs.delete_user(user_id, delete, return_results)
+    results = await userFuncs.delete_user(user_id, delete, return_results)
+    if not results.records:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No users found with the given id",
+        )
+    return results.records[0]

@@ -1,14 +1,14 @@
 from typing import Any
 
 from app import common
-from app.models import baseModels
-from app.services import authentication
 from app.database.connection import crud
 from app.database.repositories.users import (
     models as userModels,
     ITEM_TYPE,
     BASE_PROPERTIES,
 )
+from app.models import baseModels
+from app.services import authentication
 
 
 async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):

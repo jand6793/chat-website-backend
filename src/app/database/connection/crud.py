@@ -13,19 +13,17 @@ async def select(
     order_by: str = "",
 ):
     query = get_select_query(table, properties, criteria, order_by)
-    return await exec(query, fetch=True, params_seq=values)
+    return await exec(query, params_seq=values, fetch=True)
 
 
-def get_select_query(
-    table: str, properties: list[str], criteria: str = "", order_by: str = ""
-):
+def get_select_query(table: str, properties: list[str], criteria: str, order_by: str):
     query = f"""
         SELECT
-            {', '.join(properties)}
+            {", ".join(properties)}
         FROM
             chat.{table}
-        {f'WHERE {criteria}' if criteria else ''}
-        {f'ORDER BY {order_by}' if order_by else ''}
+        {f"WHERE {criteria}" if criteria else ""}
+        {f"ORDER BY {order_by}" if order_by else ""}
     """
     return wrap_query_as_json(query)
 
@@ -48,7 +46,7 @@ async def insert(
     columns = item_to_columns(item_dict)
     query = get_insert_query(table, columns, return_results)
     values = item_to_values(item_dict)
-    return await exec(query, values, auto_commit=True, fetch=return_results)
+    return await exec(query, values, fetch=return_results)
 
 
 def item_to_dict(item: BaseModel | dict[Any, Any]):
@@ -67,10 +65,10 @@ def get_insert_query(table: str, columns: list[str], return_results: bool):
     return f"""
         INSERT INTO
             chat.{table}
-            ({', '.join(columns)})
+            ({", ".join(columns)})
         VALUES
-            ({', '.join(['%s'] * len(columns))})
-        {f'RETURNING to_jsonb({table}.*)' if return_results else ''}
+            ({", ".join(["%s"] * len(columns))})
+        {f"RETURNING to_jsonb({table}.*)" if return_results else ""}
     """
 
 
@@ -87,17 +85,34 @@ async def update(
         table, columns, criteria=criteria, return_results=return_results
     )
     values = item_to_values(item_dict)
-    return await exec(query, values, auto_commit=True, fetch=return_results)
+    return await exec(query, values, fetch=return_results)
 
 
 def get_update_query(
-    table: str, columns: list[str], criteria: str = "", return_results: bool = False
+    table: str, columns: list[str], criteria: str, return_results: bool
 ):
     return f"""
         UPDATE
             chat.{table}
         SET
-            {', '.join([f'{column} = %s' for column in columns])}
-        {f'WHERE {criteria}' if criteria else ''}
-        {f'RETURNING to_jsonb({table}.*)' if return_results else ''}
+            {", ".join([f"{column} = %s" for column in columns])}
+        {f"WHERE {criteria}" if criteria else ""}
+        {f"RETURNING to_jsonb({table}.*)" if return_results else ""}
+    """
+
+
+def delete(table: str, item_id: int, delete: bool, return_results: bool = False):
+    query = get_delete_query(table, item_id, delete, return_results)
+    return exec(query, fetch=return_results)
+
+
+def get_delete_query(table: str, item_id: int, delete: bool, return_results: bool):
+    return f"""
+        UPDATE
+            chat.{table}
+        SET
+            deleted = {delete}
+        WHERE
+            id = {item_id}
+        {f"RETURNING to_jsonb({table}.*)" if return_results else ""}
     """
