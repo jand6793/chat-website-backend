@@ -88,8 +88,6 @@ async def _exec(
         await conn.set_autocommit(auto_commit)
         async with conn.cursor() as cur:
             try:
-                # if len(parameters) > 1:
-                #     await cur.executemany(query, parameters, returning=fetch)
                 if parameters:
                     await cur.execute(query, parameters)
                 else:
@@ -105,7 +103,7 @@ def format_results(results: list[Any]) -> list[dict[str, Any]]:
         return []
     elif isinstance(results[0], tuple):
         if isinstance(results[0][0], list):
-            return [r[0][0] for r in results]
+            return results[0][0]
         else:
             return [r[0] for r in results]
     else:
