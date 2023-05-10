@@ -51,14 +51,14 @@ class UsersCreate(pydantic.BaseModel):
     users: tuple[UserCreate, ...]
 
 
-class UserUpdateToDB(pydantic.BaseModel):
+class UserUpdate(pydantic.BaseModel):
     full_name: str | None = None
     password: str | None = None
     description: str | None = None
 
     @pydantic.root_validator()
     def validate_any_values_are_specified(
-        cls: "UserUpdateToDB", values: dict[str, str | None]
+        cls: "UserUpdate", values: dict[str, str | None]
     ):
         if not any(values.values()):
             raise ValueError("At least one property must be specified")
@@ -74,10 +74,9 @@ class UserUpdateToDB(pydantic.BaseModel):
     _validate_description = pydantic.validator("description", allow_reuse=True)(
         validatorFuncs.validate_string_passage
     )
-
-
-class UserUpdate(baseModels.Id, UserUpdateToDB):
-    pass
+    
+class UserUpdateToDB(UserUpdate):
+    hashed_password: str | None = None
 
 
 class UserToDB(UserBase):
@@ -91,6 +90,7 @@ class UserCriteria(
     full_name: str | None = None
     username: str | None = None
     description: str | None = None
+    deleted: bool | None = True
 
     exclude_full_name: bool = False
     exclude_username: bool = False

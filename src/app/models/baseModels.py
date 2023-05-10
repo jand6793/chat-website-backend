@@ -1,6 +1,7 @@
 from datetime import datetime
 import time
 from typing import Any
+from typing_extensions import Unpack
 
 import pydantic
 
@@ -21,7 +22,15 @@ def validate_all_properties_are_specified(values: dict[str, Any]):
         return values
 
 
-class IdCriteria(pydantic.BaseModel):
+class Base(pydantic.BaseModel):
+    pass
+
+    def new(self, **properties: Any):
+        new_properties = self.dict(exclude_unset=True) | properties
+        return type(self)(**new_properties)
+
+
+class IdCriteria(Base):
     id: int | None = None
     exclude_id: bool = False
 
@@ -30,7 +39,7 @@ class IdCriteria(pydantic.BaseModel):
     )
 
 
-class Id(pydantic.BaseModel):
+class Id(Base):
     id: int
 
     _validate_id = pydantic.validator("id", allow_reuse=True)(
@@ -38,7 +47,7 @@ class Id(pydantic.BaseModel):
     )
 
 
-class Ids(pydantic.BaseModel):
+class Ids(Base):
     ids: tuple[int, ...]
 
     _validate_ids = pydantic.validator("ids", allow_reuse=True)(
@@ -46,7 +55,7 @@ class Ids(pydantic.BaseModel):
     )
 
 
-class Deleted(pydantic.BaseModel):
+class Deleted(Base):
     deleted: bool
 
 
@@ -54,23 +63,23 @@ class IdDeleted(Id, Deleted):
     pass
 
 
-class SourceItem(pydantic.BaseModel):
+class SourceItem(Base):
     id: int
     item_type: str
 
 
-class ItemLinks(pydantic.BaseModel):
+class ItemLinks(Base):
     id: int
     item_type: str
     link_type: str | None = None
     source_items: tuple[SourceItem, ...]
 
 
-class ItemsLinks(pydantic.BaseModel):
+class ItemsLinks(Base):
     items_links: tuple[ItemLinks, ...]
 
 
-class PaginationBase(pydantic.BaseModel):
+class PaginationBase(Base):
     sort_by: str | None = None
 
     # @pydantic.root_validator()
@@ -78,7 +87,7 @@ class PaginationBase(pydantic.BaseModel):
     #     return validate_all_properties_are_specified(values)
 
 
-class BasePropertiesCriteria(pydantic.BaseModel):
+class BasePropertiesCriteria(Base):
     created: tuple[datetime, datetime] | None = None
     exclude_created: bool = False
     last_modified: tuple[datetime, datetime] | None = None

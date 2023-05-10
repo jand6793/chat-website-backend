@@ -1,6 +1,8 @@
 import datetime
 import functools
-from typing import Any
+from typing import Any, Annotated
+
+from fastapi import Path
 
 
 ONE_LESS_16_BIT_INT = 2**15 - 1
@@ -9,6 +11,8 @@ ONE_LESS_64_BIT_INT = 2**63 - 1
 MAX_DECIMAL_PLACES_FOR_FLOAT = 16
 MAX_HOURS = 100_000
 MAX_NOTES_LENGTH = 500
+
+ValidId = Annotated[int, Path(gt=0, le=ONE_LESS_64_BIT_INT)]
 
 
 def validate_float_decimal_places(value: float | None, value_name: str):

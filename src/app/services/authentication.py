@@ -1,10 +1,8 @@
 import datetime
 from datetime import timezone, timedelta, datetime
 
-import fastapi
-from fastapi import security, status
-import jose
-from jose import jwt
+from fastapi import security, status, Depends, HTTPException
+from jose import jwt, JWTError
 from passlib import context
 
 from app.core.config import config
@@ -40,7 +38,9 @@ async def authenticate_user(username: str, password: str):
         return None
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(
+    data: dict[str, str | datetime], expires_delta: timedelta | None = None
+):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -53,14 +53,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     )
 
 
-credentials_exception = fastapi.HTTPException(
+credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",
     headers={"WWW-Authenticate": "Bearer"},
 )
 
 
-async def get_current_user(token: str = fastapi.Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(
             token,
@@ -73,7 +73,7 @@ async def get_current_user(token: str = fastapi.Depends(oauth2_scheme)):
             raise credentials_exception
         else:
             token_data = userModels.TokenData(username=username)
-    except jose.JWTError as e:
+    except JWTError as e:
         raise credentials_exception from e
     user = await get_user(token_data.username)
     if user is None:

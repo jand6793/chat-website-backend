@@ -1,11 +1,13 @@
 import datetime
 
 import fastapi
-from fastapi import security, status
+from fastapi import security, status, Path
 from pydantic import error_wrappers
+from psycopg import errors as pg_errors
 
 from app.services import authentication
 from app.models import baseModels, modelExceptionFuncs
+from app.models.validatorFuncs import ValidId
 from app.core.config import config
 from app.database.repositories.users import funcs as userFuncs, models as userModels
 
@@ -91,19 +93,32 @@ async def get_users(
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED)
-async def create_users(new_users: userModels.UsersCreate, return_results: bool = False):
-    return await userFuncs.create_users(new_users, return_results)
+async def create_user(new_user: userModels.UserCreate, return_results: bool = False):
+    results = await userFuncs.create_user(new_user, return_results)
+    if not results.error:
+        return results.records[0]
+    if isinstance(results.error, pg_errors.UniqueViolation):
+        raise fastapi.HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User with the given username already exists.",
+        )
+    else:
+        raise fastapi.HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="An error occurred while creating the user.",
+        )
 
 
-@router.patch("/users", status_code=status.HTTP_202_ACCEPTED)
+@router.patch("/users/{user_id}", status_code=status.HTTP_202_ACCEPTED)
 async def update_user(
     user_update: userModels.UserUpdate,
+    user_id: int = ValidId,
     return_results: bool = False,
     user: userModels.User = fastapi.Depends(authentication.get_current_user),
 ):
-    items = await userFuncs.update_user(user_update, return_results)
+    items = await userFuncs.update_user(user_id, user_update, return_results)
     if items.records:
-        return items.records
+        return items.records[0]
     else:
         raise fastapi.HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -111,11 +126,11 @@ async def update_user(
         )
 
 
-@router.delete("/users", status_code=status.HTTP_202_ACCEPTED)
+@router.delete("/users/{user_id}", status_code=status.HTTP_202_ACCEPTED)
 async def delete_user(
-    id: baseModels.Id,
+    user_id: int = ValidId,
     delete: bool = False,
     return_results: bool = False,
     user: userModels.User = fastapi.Depends(authentication.get_current_user),
 ):
-    return userFuncs.delete_user(id, delete, return_results)
+    return await userFuncs.delete_user(user_id, delete, return_results)

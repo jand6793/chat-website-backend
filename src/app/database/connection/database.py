@@ -11,8 +11,13 @@ from app.core.config import config
 
 @dataclass
 class ExecResult:
-    records: list[Any] = field(default_factory=list)
+    records: list[dict[str, Any]] = field(default_factory=list)
     error: Warning | Error | None = None
+
+    def new(
+        self, records: list[Any] | None = None, error: Warning | Error | None = None
+    ):
+        return ExecResult(records=records or [], error=error)
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -83,9 +88,9 @@ async def _exec(
         await conn.set_autocommit(auto_commit)
         async with conn.cursor() as cur:
             try:
-                if len(parameters) > 1:
-                    await cur.executemany(query, parameters, returning=fetch)
-                elif parameters:
+                # if len(parameters) > 1:
+                #     await cur.executemany(query, parameters, returning=fetch)
+                if parameters:
                     await cur.execute(query, parameters)
                 else:
                     await cur.execute(query)

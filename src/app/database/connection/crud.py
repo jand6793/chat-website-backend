@@ -30,28 +30,37 @@ def get_select_query(
     return wrap_query_as_json(query)
 
 
+def wrap_query_as_json(query: str):
+    return f"""
+        SELECT
+            jsonb_agg(results)
+        FROM
+            ({query}) results
+    """
+
+
 async def insert(
     table: str,
-    items: list[BaseModel] | list[dict[Any, Any]],
+    item: BaseModel | dict[Any, Any],
     return_results: bool = False,
 ):
-    dict_items = items_to_dicts(items)
-    columns = items_to_columns(dict_items)
+    item_dict = item_to_dict(item)
+    columns = item_to_columns(item_dict)
     query = get_insert_query(table, columns, return_results)
-    values = items_to_values(dict_items)
+    values = item_to_values(item_dict)
     return await exec(query, values, auto_commit=True, fetch=return_results)
 
 
-def items_to_dicts(items: list[BaseModel] | list[dict[Any, Any]]):
-    return [item.dict() if isinstance(item, BaseModel) else item for item in items]
+def item_to_dict(item: BaseModel | dict[Any, Any]):
+    return item.dict() if isinstance(item, BaseModel) else item
 
 
-def items_to_columns(items: list[dict[Any, Any]]):
-    return list(items[0].keys())
+def item_to_columns(item: dict[Any, Any]):
+    return list(item.keys())
 
 
-def items_to_values(items: list[dict[Any, Any]]):
-    return [tuple(item.values()) for item in items]
+def item_to_values(item: dict[Any, Any]):
+    return tuple(item.values())
 
 
 def get_insert_query(table: str, columns: list[str], return_results: bool):
@@ -71,13 +80,13 @@ async def update(
     item: BaseModel | dict[Any, Any],
     return_results: bool = False,
 ):
-    item_dicts = items_to_dicts([item])
-    columns = items_to_columns(item_dicts)
+    item_dict = item_to_dict(item)
+    columns = item_to_columns(item_dict)
     criteria = f"id = {item_id}"
     query = get_update_query(
         table, columns, criteria=criteria, return_results=return_results
     )
-    values = items_to_values(item_dicts)[0]
+    values = item_to_values(item_dict)
     return await exec(query, values, auto_commit=True, fetch=return_results)
 
 
@@ -91,13 +100,4 @@ def get_update_query(
             {', '.join([f'{column} = %s' for column in columns])}
         {f'WHERE {criteria}' if criteria else ''}
         {f'RETURNING to_jsonb({table}.*)' if return_results else ''}
-    """
-
-
-def wrap_query_as_json(query: str):
-    return f"""
-        SELECT
-            jsonb_agg(results)
-        FROM
-            ({query}) results
     """

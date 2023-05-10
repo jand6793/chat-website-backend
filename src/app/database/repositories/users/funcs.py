@@ -1,16 +1,20 @@
 from typing import Any
 
-from app.database.repositories.users import models as userModels
+from app import common
 from app.models import baseModels
 from app.services import authentication
 from app.database.connection import crud
-from app.database.repositories.users import ITEM_TYPE, BASE_PROPERTIES
-from app import common
+from app.database.repositories.users import (
+    models as userModels,
+    ITEM_TYPE,
+    BASE_PROPERTIES,
+)
 
 
 async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):
-    criteria, values = create_user_criteria_string(user_criteria, is_login)
-    sort_by = baseModels.create_sort_by(ITEM_TYPE, user_criteria.sort_by)
+    set_user_criteria = user_criteria.new(deleted=False)
+    criteria, values = create_user_criteria_string(set_user_criteria, is_login)
+    sort_by = baseModels.create_sort_by(ITEM_TYPE, set_user_criteria.sort_by)
     properties = BASE_PROPERTIES + (["hashed_password"] if is_login else [])
     results = await crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
     return results.records
@@ -51,19 +55,19 @@ def create_user_criteria_string(
 def create_username_criteria_string(
     username: str | None, logging_in: bool, exclude: bool = False
 ):
-    return (
-        baseModels.create_equals_string_string(ITEM_TYPE, "username", username, exclude)
-        if logging_in
-        else baseModels.create_similar_to_string(
-            ITEM_TYPE, "username", username, exclude
-        )
-    )
+    params = ITEM_TYPE, "username", username, exclude
+    if logging_in:
+        return baseModels.create_equals_string_string(*params)
+    else:
+        return baseModels.create_similar_to_string(*params)
 
 
-async def create_users(users: userModels.UsersCreate, return_results: bool = False):
-    users_to_db = [create_user_to_db(user) for user in users.users]
-    results = await crud.insert(ITEM_TYPE, users_to_db, return_results)
-    return remove_hashed_passwords(results.records)
+async def create_user(user: userModels.UserCreate, return_results: bool = False):
+    user_to_db = create_user_to_db(user)
+    results = await crud.insert(ITEM_TYPE, user_to_db, return_results)
+    if results.error:
+        return results
+    return results.new(remove_hashed_passwords(results.records))
 
 
 def remove_hashed_passwords(items: list[dict[str, Any]]):
@@ -76,29 +80,23 @@ def create_user_to_db(user: userModels.UserCreate):
     return userModels.UserToDB(**combined_user)
 
 
-async def update_user(user: userModels.UserUpdate, return_results: bool = True):
-    user_to_db = create_user_update_to_db(user)
-    return await crud.update(
-        ITEM_TYPE, user.id, user_to_db.dict(exclude_unset=True), return_results
-    )
-
-
-def create_user_update_to_db(
-    user: userModels.UserUpdate,
+async def update_user(
+    user_id: int, user: userModels.UserUpdate, return_results: bool = True
 ):
+    user_to_db = add_hashed_password(user)
+    filtered_user_to_db = user_to_db.dict(exclude_unset=True)
+    return await crud.update(ITEM_TYPE, user_id, filtered_user_to_db, return_results)
+
+
+def add_hashed_password(user: userModels.UserUpdate):
+    filtered_user = user.dict(exclude_unset=True)
     if user.password:
         hashed_password = authentication.hash_password(user.password)
-        combined_user = user.dict(exclude_none=True) | {
-            "hashed_password": hashed_password
-        }
+        user_with_hash = filtered_user | {"hashed_password": hashed_password}
     else:
-        combined_user = user.dict(exclude_none=True)
-    return userModels.UserUpdateToDB(**combined_user)
+        user_with_hash = filtered_user
+    return userModels.UserUpdateToDB(**user_with_hash)
 
 
-def delete_user(
-    user_id: baseModels.Id, delete: bool = True, return_results: bool = True
-):
-    ids = baseModels.Ids(ids=(user_id.id,))
-    currentStateFuncs.delete_current_state(user_id, delete)
-    return storageEndpointFuncs.delete_items(ITEM_TYPE, ids, delete, return_results)
+def delete_user(user_id: int, delete: bool = True, return_results: bool = True):
+    return crud.delete(ITEM_TYPE, user_id, delete, return_results)
