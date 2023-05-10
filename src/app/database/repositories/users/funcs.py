@@ -15,7 +15,7 @@ async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = Fal
     set_user_criteria = user_criteria.new(deleted=False)
     criteria, values = create_user_criteria_string(set_user_criteria, is_login)
     sort_by = baseModels.create_sort_by(ITEM_TYPE, set_user_criteria.sort_by)
-    properties = BASE_PROPERTIES + (["hashed_password"] if is_login else [])
+    properties = combined_properties(is_login)
     results = await crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
     return results.records
 
@@ -53,6 +53,10 @@ def create_criteria_strs(user_criteria: userModels.UserCriteria, logging_in: boo
             user_criteria.exclude_description,
         ),
     ] + baseModels.create_base_property_criterias(ITEM_TYPE, user_criteria)
+
+
+def combined_properties(is_login: bool):
+    return BASE_PROPERTIES + (["hashed_password"] if is_login else [])
 
 
 def join_with_and(criteria: list[str]):
