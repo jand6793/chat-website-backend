@@ -7,7 +7,6 @@ from pydantic import error_wrappers
 from app.core.config import config
 from app.database.repositories.users import funcs as userFuncs, models as userModels
 from app.models import modelExceptionFuncs
-from app.models.validatorFuncs import ValidateId
 from app.services import authentication as auth
 
 

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable
 
 from app import common
 from app.database.connection import crud
@@ -67,6 +67,12 @@ def create_username_criteria_string(
         return baseModels.create_equals_string_string(*params)
     else:
         return baseModels.create_similar_to_string(*params)
+
+
+async def get_users_by_ids(user_ids: Iterable[int], order_by: str = "id"):
+    joined_ids = common.join_with_commas(user_ids)
+    criteria = f"id in ({joined_ids})"
+    return await crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, order_by=order_by)
 
 
 async def create_user(user: userModels.UserCreate, return_results: bool = False):
