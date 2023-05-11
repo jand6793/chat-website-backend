@@ -69,7 +69,7 @@ Chat Website Backend stands on the shoulders of giants:
 * <a href="https://pydantic-docs.helpmanual.io/" class="external-link" target="_blank">Pydantic</a> for the data parts.
 
 ## Installation
-
+* Install the latest version of <a href="https://www.postgresql.org/download/" class="external-link" target="_blank">PostgreSQL</a>
 * Install the latest version of <a href="https://www.python.org/downloads/" class="external-link" target="_blank">Python</a>
 * Then install pipenv
 
