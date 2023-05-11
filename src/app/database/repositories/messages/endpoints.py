@@ -55,7 +55,7 @@ async def get_messages(
     except error_wrappers.ValidationError as e:
         modelExceptionFuncs.raise_model_exception(e)
     else:
-        results = await messageFuncs.get_messages(user.id, message_criteria)
+        results = await messageFuncs.get_messages(message_criteria, user.id)
         if not results.records:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -84,7 +84,7 @@ async def update_message(
     return_results: bool = False,
     user: userModels.User = Depends(auth.get_current_user),
 ):
-    message = await get_message_from_id(message_id)
+    message = await get_message_from_id(message_id, user.id)
     verify_message_exists(message)
     verify_user_is_message_owner(user, message)
     results = await messageFuncs.update_message(
@@ -108,7 +108,7 @@ async def delete_message(
 
 
 def verify_message_exists(message: database.ExecResult):
-    if not message.records[0]:
+    if not message.records:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No message found with the given id",
@@ -123,6 +123,6 @@ def verify_user_is_message_owner(user: userModels.User, message: database.ExecRe
         )
 
 
-async def get_message_from_id(message_id: int):
+async def get_message_from_id(message_id: int, user_id: int | None = None):
     message_criteria = messageModels.MessageCriteria(id=message_id)
-    return await messageFuncs.get_messages(message_criteria)
+    return await messageFuncs.get_messages(message_criteria, user_id)

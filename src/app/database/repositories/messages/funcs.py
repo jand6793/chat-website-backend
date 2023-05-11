@@ -8,17 +8,18 @@ from app.database.repositories.messages import (
 from app.models import baseModels
 
 
-async def get_messages(user_id: int, message_criteria: messageModels.MessageCriteria):
-    set_message_criteria = message_criteria.copy(update={"deleted": False})
-    criteria, values = create_message_criteria_string(user_id, set_message_criteria)
-    sort_by = baseModels.create_sort_by(ITEM_TYPE, set_message_criteria.sort_by)
+async def get_messages(
+    message_criteria: messageModels.MessageCriteria, user_id: int | None = None
+):
+    criteria, values = create_message_criteria_string(message_criteria, user_id)
+    sort_by = baseModels.create_sort_by(ITEM_TYPE, message_criteria.sort_by)
     return await crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, values, sort_by)
 
 
 def create_message_criteria_string(
-    user_id: int, message_criteria: messageModels.MessageCriteria
+    message_criteria: messageModels.MessageCriteria, user_id: int | None
 ):
-    criteria_results = create_criteria_strs(user_id, message_criteria)
+    criteria_results = create_criteria_strs(message_criteria, user_id)
     criteria = common.get_true_values(criteria_results)
     joined_criteria = common.join_with_and(criteria)
     all_values = [
@@ -32,9 +33,16 @@ def create_message_criteria_string(
     return joined_criteria, values
 
 
-def create_criteria_strs(user_id: int, message_criteria: messageModels.MessageCriteria):
+def create_criteria_strs(
+    message_criteria: messageModels.MessageCriteria, user_id: int | None
+):
+    user_id_criteria = (
+        f"({ITEM_TYPE}.source_user_id = %s OR {ITEM_TYPE}.target_user_id = %s)"
+        if user_id
+        else ""
+    )
     return [
-        "(source_user_id = %s OR target_user_id = %s)",
+        user_id_criteria,
         baseModels.create_equals_non_string_string(
             ITEM_TYPE,
             "source_user_id",
