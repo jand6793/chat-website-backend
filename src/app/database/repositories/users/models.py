@@ -90,7 +90,7 @@ class UserCriteria(
     full_name: str | None = None
     username: str | None = None
     description: str | None = None
-    deleted: bool | None = True
+    from_messages: bool | None = None
 
     exclude_full_name: bool = False
     exclude_username: bool = False
