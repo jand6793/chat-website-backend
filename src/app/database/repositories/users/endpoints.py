@@ -7,8 +7,9 @@ from pydantic import error_wrappers
 from app.core.config import config
 from app.database.repositories.users import funcs as userFuncs, models as userModels
 from app.models import modelExceptionFuncs
-from app.models.validatorFuncs import ValidId
-from app.services import authentication
+from app.models.validatorFuncs import ValidateId
+from app.services import authentication as auth
+
 
 router = APIRouter()
 
@@ -17,13 +18,11 @@ router = APIRouter()
 async def login_for_access_token(
     form_data: security.OAuth2PasswordRequestForm = Depends(),
 ):
-    if user := await authentication.authenticate_user(
-        form_data.username, form_data.password
-    ):
+    if user := await auth.authenticate_user(form_data.username, form_data.password):
         access_token_expires = datetime.timedelta(
             minutes=config.access_token_expire_minutes
         )
-        access_token = authentication.create_access_token(
+        access_token = auth.create_access_token(
             data={"sub": user.username}, expires_delta=access_token_expires
         )
         return {"access_token": access_token, "token_type": "bearer"}
@@ -36,8 +35,8 @@ async def login_for_access_token(
 
 
 @router.get("/users/me", response_model=userModels.User)
-async def read_users_me(
-    current_user: userModels.User = Depends(authentication.get_current_user),
+async def read_user_me(
+    current_user: userModels.User = Depends(auth.get_current_user),
 ):
     return current_user
 
@@ -58,7 +57,7 @@ async def get_users(
     exclude_last_modified: bool = False,
     deleted: bool | None = None,
     sort_by: str | None = None,
-    user: userModels.User = Depends(authentication.get_current_user),
+    user: userModels.User = Depends(auth.get_current_user),
 ):
     try:
         user_criteria = userModels.UserCriteria(
@@ -80,22 +79,22 @@ async def get_users(
     except error_wrappers.ValidationError as e:
         modelExceptionFuncs.raise_model_exception(e)
     else:
-        items = await userFuncs.get_users(user_criteria)
-        if items:
-            return {"items": items}
-        else:
+        results = await userFuncs.get_users(user_criteria)
+        if not results.records:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No users found with the given criteria.",
             )
+        return {"items": results.records}
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED)
 async def create_user(new_user: userModels.UserCreate, return_results: bool = False):
     results = await userFuncs.create_user(new_user, return_results)
     if not results.error:
-        return results.records[0]
-    if isinstance(results.error, pg_errors.UniqueViolation):
+        if return_results:
+            return results.records[0]
+    elif isinstance(results.error, pg_errors.UniqueViolation):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with the given username already exists.",
@@ -107,34 +106,21 @@ async def create_user(new_user: userModels.UserCreate, return_results: bool = Fa
         )
 
 
-@router.patch("/users/{user_id}", status_code=status.HTTP_202_ACCEPTED)
-async def update_user(
+@router.patch("/users/me", status_code=status.HTTP_202_ACCEPTED)
+async def update_user_me(
     user_update: userModels.UserUpdate,
-    user_id: int = ValidId,
     return_results: bool = False,
-    user: userModels.User = Depends(authentication.get_current_user),
+    user: userModels.User = Depends(auth.get_current_user),
 ):
-    items = await userFuncs.update_user(user_id, user_update, return_results)
-    if items.records:
-        return items.records[0]
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No users found with the given id",
-        )
+    items = await userFuncs.update_user(user.id, user_update, return_results)
+    return items.records[0] if return_results else None
 
 
-@router.delete("/users/{user_id}", status_code=status.HTTP_202_ACCEPTED)
-async def delete_user(
-    user_id: int = ValidId,
+@router.delete("/users/me", status_code=status.HTTP_202_ACCEPTED)
+async def delete_user_me(
     delete: bool = False,
     return_results: bool = False,
-    user: userModels.User = Depends(authentication.get_current_user),
+    user: userModels.User = Depends(auth.get_current_user),
 ):
-    results = await userFuncs.delete_user(user_id, delete, return_results)
-    if not results.records:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No users found with the given id",
-        )
-    return results.records[0]
+    results = await userFuncs.delete_user(user.id, delete)
+    return results.records[0] if return_results else None

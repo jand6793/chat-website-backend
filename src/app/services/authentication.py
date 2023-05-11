@@ -14,28 +14,25 @@ password_context = context.CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = security.OAuth2PasswordBearer(tokenUrl="token")
 
 
-def verify_password(plain_password: str, hashed_password: str):
-    return password_context.verify(plain_password, hashed_password)
-
-
-def hash_password(password: str):
-    return password_context.hash(password)
-
-
-async def get_user(username: str):
-    user_criteria = userModels.UserCriteria(username=username)
-    if not (user_results := await userFuncs.get_users(user_criteria, True)):
-        return None
-    user = userModels.UserInDB(**user_results[0])
-    return None if user.deleted else user
-
-
 async def authenticate_user(username: str, password: str):
     user = await get_user(username)
     if user and verify_password(password, user.hashed_password):
         return userModels.User(**user.dict())
     else:
         return None
+
+
+async def get_user(username: str):
+    user_criteria = userModels.UserCriteria(username=username)
+    user_results = await userFuncs.get_users(user_criteria, True)
+    if not user_results.records:
+        return None
+    user = userModels.UserInDB(**user_results.records[0])
+    return None if user.deleted else user
+
+
+def verify_password(plain_password: str, hashed_password: str):
+    return password_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(
@@ -80,3 +77,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     else:
         return userModels.User(**user.dict())
+
+
+def hash_password(password: str):
+    return password_context.hash(password)

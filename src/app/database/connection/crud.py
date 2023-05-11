@@ -120,9 +120,9 @@ def create_placeholder(column: str):
     return f"{column} = %s"
 
 
-def delete(table: str, item_id: int, delete: bool, return_results: bool = False):
+async def delete(table: str, item_id: int, delete: bool, return_results: bool = False):
     query = get_delete_query(table, item_id, delete, return_results)
-    return exec(query, fetch=return_results)
+    return await exec(query, fetch=return_results)
 
 
 def get_delete_query(table: str, item_id: int, delete: bool, return_results: bool):

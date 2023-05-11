@@ -12,7 +12,7 @@ MAX_DECIMAL_PLACES_FOR_FLOAT = 16
 MAX_HOURS = 100_000
 MAX_NOTES_LENGTH = 500
 
-ValidId = Annotated[int, Path(gt=0, le=ONE_LESS_64_BIT_INT)]
+ValidateId = Annotated[int, Path(gt=0, le=ONE_LESS_64_BIT_INT)]
 
 
 def validate_float_decimal_places(value: float | None, value_name: str):

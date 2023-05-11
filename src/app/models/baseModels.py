@@ -22,15 +22,7 @@ def validate_all_properties_are_specified(values: dict[str, Any]):
         return values
 
 
-class Base(pydantic.BaseModel):
-    pass
-
-    def new(self, **properties: Any):
-        new_properties = self.dict(exclude_unset=True) | properties
-        return type(self)(**new_properties)
-
-
-class IdCriteria(Base):
+class IdCriteria(pydantic.BaseModel):
     id: int | None = None
     exclude_id: bool = False
 
@@ -39,7 +31,7 @@ class IdCriteria(Base):
     )
 
 
-class Id(Base):
+class Id(pydantic.BaseModel):
     id: int
 
     _validate_id = pydantic.validator("id", allow_reuse=True)(
@@ -47,7 +39,7 @@ class Id(Base):
     )
 
 
-class Ids(Base):
+class Ids(pydantic.BaseModel):
     ids: tuple[int, ...]
 
     _validate_ids = pydantic.validator("ids", allow_reuse=True)(
@@ -55,7 +47,7 @@ class Ids(Base):
     )
 
 
-class Deleted(Base):
+class Deleted(pydantic.BaseModel):
     deleted: bool
 
 
@@ -63,31 +55,16 @@ class IdDeleted(Id, Deleted):
     pass
 
 
-class SourceItem(Base):
-    id: int
-    item_type: str
-
-
-class ItemLinks(Base):
-    id: int
-    item_type: str
-    link_type: str | None = None
-    source_items: tuple[SourceItem, ...]
-
-
-class ItemsLinks(Base):
-    items_links: tuple[ItemLinks, ...]
-
-
-class PaginationBase(Base):
+class PaginationBase(pydantic.BaseModel):
     sort_by: str | None = None
 
-    # @pydantic.root_validator()
-    # def validate_all(cls: "PaginationBase", values: dict[str, int | str | None]):
-    #     return validate_all_properties_are_specified(values)
+
+class BaseDates(pydantic.BaseModel):
+    created: datetime
+    last_modified: datetime
 
 
-class BasePropertiesCriteria(Base):
+class BasePropertiesCriteria(pydantic.BaseModel):
     created: tuple[datetime, datetime] | None = None
     exclude_created: bool = False
     last_modified: tuple[datetime, datetime] | None = None
@@ -97,20 +74,6 @@ class BasePropertiesCriteria(Base):
 
 class PaginationBaseProperties(PaginationBase, BasePropertiesCriteria):
     pass
-    # @pydantic.root_validator()
-    # def validate_all(
-    #     cls: "PaginationBaseProperties", values: dict[str, int | str | None]
-    # ):
-    #     if values["cursor"] and values["cursor"].count(",") > 1:
-    #         raise ValueError(
-    #             "sort_by can't have multiple properties when cursor is specified"
-    #         )
-    #     else:
-    #         return values
-
-
-def create_items_links(item_links: tuple[ItemLinks, ...]):
-    return ItemsLinks(items_links=item_links)
 
 
 def create_base_property_criterias(

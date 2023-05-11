@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys
 
-import fastapi
+from fastapi import FastAPI
 import uvicorn
 
 sys.path.append(str(Path.cwd() / "src"))
@@ -12,7 +12,7 @@ from app.database.connection import database
 
 
 def get_application():
-    app = fastapi.FastAPI()
+    app = FastAPI()
     app.add_event_handler("startup", database.open_backend_pool)
     app.add_event_handler("shutdown", database.close_backend_pool)
     app.include_router(routes.router)

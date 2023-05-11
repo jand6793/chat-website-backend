@@ -2,6 +2,7 @@ from typing import Any
 
 from app import common
 from app.database.connection import crud
+from app.database.connection.database import ExecResult
 from app.database.repositories.users import (
     models as userModels,
     ITEM_TYPE,
@@ -12,12 +13,11 @@ from app.services import authentication
 
 
 async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):
-    set_user_criteria = user_criteria.new(deleted=False)
+    set_user_criteria = user_criteria.copy(update={"deleted": False})
     criteria, values = create_user_criteria_string(set_user_criteria, is_login)
     sort_by = baseModels.create_sort_by(ITEM_TYPE, set_user_criteria.sort_by)
     properties = combined_properties(is_login)
-    results = await crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
-    return results.records
+    return await crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
 
 
 def create_user_criteria_string(
@@ -25,7 +25,7 @@ def create_user_criteria_string(
 ):
     criteria_results = create_criteria_strs(user_criteria, logging_in)
     criteria = common.get_true_values(criteria_results)
-    joined_criteria = join_with_and(criteria)
+    joined_criteria = common.join_with_and(criteria)
     all_values = [
         user_criteria.full_name,
         user_criteria.username,
@@ -59,10 +59,6 @@ def combined_properties(is_login: bool):
     return BASE_PROPERTIES + (["hashed_password"] if is_login else [])
 
 
-def join_with_and(criteria: list[str]):
-    return " AND ".join(criteria) if criteria else ""
-
-
 def create_username_criteria_string(
     username: str | None, logging_in: bool, exclude: bool = False
 ):
@@ -78,7 +74,7 @@ async def create_user(user: userModels.UserCreate, return_results: bool = False)
     results = await crud.insert(ITEM_TYPE, user_to_db, return_results)
     if results.error:
         return results
-    return results.new(remove_hashed_passwords(results.records))
+    return ExecResult(remove_hashed_passwords(results.records))
 
 
 def remove_hashed_passwords(items: list[dict[str, Any]]):
@@ -109,5 +105,5 @@ def add_hashed_password(user: userModels.UserUpdate):
     return userModels.UserUpdateToDB(**user_with_hash)
 
 
-def delete_user(user_id: int, delete: bool = True, return_results: bool = True):
-    return crud.delete(ITEM_TYPE, user_id, delete, return_results)
+async def delete_user(user_id: int, delete: bool = True, return_results: bool = True):
+    return await crud.delete(ITEM_TYPE, user_id, delete, return_results)

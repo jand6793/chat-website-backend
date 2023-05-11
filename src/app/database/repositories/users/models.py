@@ -1,4 +1,5 @@
 import datetime
+from typing import Self
 
 import pydantic
 
@@ -57,9 +58,7 @@ class UserUpdate(pydantic.BaseModel):
     description: str | None = None
 
     @pydantic.root_validator()
-    def validate_any_values_are_specified(
-        cls: "UserUpdate", values: dict[str, str | None]
-    ):
+    def validate_any_values_are_specified(cls: Self, values: dict[str, str | None]):
         if not any(values.values()):
             raise ValueError("At least one property must be specified")
         else:
@@ -74,7 +73,8 @@ class UserUpdate(pydantic.BaseModel):
     _validate_description = pydantic.validator("description", allow_reuse=True)(
         validatorFuncs.validate_string_passage
     )
-    
+
+
 class UserUpdateToDB(UserUpdate):
     hashed_password: str | None = None
 
