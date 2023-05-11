@@ -9,9 +9,6 @@ from app.database.repositories.messages import (
 )
 from app.database.repositories.users import funcs as userFuncs
 from app.database.repositories.users import models as userModels
-from app.database.connection import database
-from app.models import modelExceptionFuncs
-from app.models.validatorFuncs import ValidateId
 from app.services import authentication as auth
 
 
