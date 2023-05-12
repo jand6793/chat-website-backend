@@ -88,7 +88,7 @@ $ pip install pipenv
 <div class="termy">
 
 ```console
-pipenv install --dev
+$ pipenv install --dev
 
 ---> 100%
 ```
