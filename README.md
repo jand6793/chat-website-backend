@@ -88,7 +88,7 @@ $ pip install pipenv
 <div class="termy">
 
 ```console
-$ pipenv install --dev
+pipenv install --dev
 
 ---> 100%
 ```
@@ -97,13 +97,23 @@ $ pipenv install --dev
 
 ## Configure it
 
-Create a `.env` file from `.env.template` with your own values:
+* Create a `.env` file from `.env.template` with your own values:
 * To generate a secret key, you can use the following command:
 
 <div class="termy">
 
 ```console
 $ python genSecretKey.py
+```
+
+</div>
+
+* Now, you can configure the database
+
+<div class="termy">
+
+```console
+$ pipenv run python src/app/database/connection/setup.py
 ```
 
 </div>
