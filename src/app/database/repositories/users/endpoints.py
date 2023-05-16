@@ -14,10 +14,10 @@ router = APIRouter()
 
 
 @router.post("/token", response_model=userModels.Token)
-async def login_for_access_token(
+def login_for_access_token(
     form_data: security.OAuth2PasswordRequestForm = Depends(),
 ):
-    if user := await auth.authenticate_user(form_data.username, form_data.password):
+    if user := auth.authenticate_user(form_data.username, form_data.password):
         access_token_expires = datetime.timedelta(
             minutes=config.access_token_expire_minutes
         )
@@ -34,14 +34,12 @@ async def login_for_access_token(
 
 
 @router.get("/users/me", response_model=userModels.User)
-async def read_user_me(
-    current_user: userModels.User = Depends(auth.get_current_user),
-):
-    return current_user
+def read_user_me(user: userModels.User = Depends(auth.get_current_user)):
+    return user
 
 
 @router.get("/users", status_code=status.HTTP_200_OK)
-async def get_users(
+def get_users(
     id: int | None = None,
     exclude_id: bool = False,
     full_name: str | None = None,
@@ -78,7 +76,7 @@ async def get_users(
     except error_wrappers.ValidationError as e:
         modelExceptionFuncs.raise_model_exception(e)
     else:
-        results = await userFuncs.get_users(user_criteria)
+        results = userFuncs.get_users(user_criteria)
         if not results.records:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -88,8 +86,8 @@ async def get_users(
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED)
-async def create_user(new_user: userModels.UserCreate, return_results: bool = False):
-    results = await userFuncs.create_user(new_user, return_results)
+def create_user(new_user: userModels.UserCreate, return_results: bool = False):
+    results = userFuncs.create_user(new_user, return_results)
     if not results.error:
         if return_results:
             return results.records[0]
@@ -106,20 +104,20 @@ async def create_user(new_user: userModels.UserCreate, return_results: bool = Fa
 
 
 @router.patch("/users/me", status_code=status.HTTP_202_ACCEPTED)
-async def update_user_me(
+def update_user_me(
     user_update: userModels.UserUpdate,
     return_results: bool = False,
     user: userModels.User = Depends(auth.get_current_user),
 ):
-    items = await userFuncs.update_user(user.id, user_update, return_results)
+    items = userFuncs.update_user(user.id, user_update, return_results)
     return items.records[0] if return_results else None
 
 
 @router.delete("/users/me", status_code=status.HTTP_202_ACCEPTED)
-async def delete_user_me(
+def delete_user_me(
     delete: bool = False,
     return_results: bool = False,
     user: userModels.User = Depends(auth.get_current_user),
 ):
-    results = await userFuncs.delete_user(user.id, delete)
+    results = userFuncs.delete_user(user.id, delete)
     return results.records[0] if return_results else None

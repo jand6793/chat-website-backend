@@ -8,12 +8,12 @@ from app.database.repositories.messages import (
 from app.models import baseModels
 
 
-async def get_messages(
+def get_messages(
     message_criteria: messageModels.MessageCriteria, user_id: int | None = None
 ):
     criteria, values = create_message_criteria_string(message_criteria, user_id)
     sort_by = baseModels.create_sort_by(ITEM_TYPE, message_criteria.sort_by)
-    return await crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, values, sort_by)
+    return crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, values, sort_by)
 
 
 def create_message_criteria_string(
@@ -64,19 +64,19 @@ def create_criteria_strs(
     ] + baseModels.create_base_property_criterias(ITEM_TYPE, message_criteria)
 
 
-async def create_message(
+def create_message(
     message: messageModels.MessageToDB, return_results: bool = False
 ):
-    return await crud.insert(ITEM_TYPE, message, return_results)
+    return crud.insert(ITEM_TYPE, message, return_results)
 
 
-async def update_message(
+def update_message(
     message_id: int, message: messageModels.MessageUpdate, return_results: bool = True
 ):
-    return await crud.update(ITEM_TYPE, message_id, message, return_results)
+    return crud.update(ITEM_TYPE, message_id, message, return_results)
 
 
-async def delete_message(
+def delete_message(
     conversation_id: int, delete: bool = True, return_results: bool = True
 ):
-    return await crud.delete(ITEM_TYPE, conversation_id, delete, return_results)
+    return crud.delete(ITEM_TYPE, conversation_id, delete, return_results)

@@ -12,12 +12,12 @@ from app.models import baseModels
 from app.services import authentication
 
 
-async def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):
+def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):
     set_user_criteria = user_criteria.copy(update={"deleted": False})
     criteria, values = create_user_criteria_string(set_user_criteria, is_login)
     sort_by = baseModels.create_sort_by(ITEM_TYPE, set_user_criteria.sort_by)
     properties = combined_properties(is_login)
-    return await crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
+    return crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
 
 
 def create_user_criteria_string(
@@ -69,15 +69,15 @@ def create_username_criteria_string(
         return baseModels.create_similar_to_string(*params)
 
 
-async def get_users_by_ids(user_ids: Iterable[int], order_by: str = "id"):
+def get_users_by_ids(user_ids: Iterable[int], order_by: str = "id"):
     joined_ids = common.join_with_commas(user_ids)
     criteria = f"id in ({joined_ids})"
-    return await crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, order_by=order_by)
+    return crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, order_by=order_by)
 
 
-async def create_user(user: userModels.UserCreate, return_results: bool = False):
+def create_user(user: userModels.UserCreate, return_results: bool = False):
     user_to_db = create_user_to_db(user)
-    results = await crud.insert(ITEM_TYPE, user_to_db, return_results)
+    results = crud.insert(ITEM_TYPE, user_to_db, return_results)
     if results.error:
         return results
     return ExecResult(remove_hashed_passwords(results.records))
@@ -93,12 +93,12 @@ def create_user_to_db(user: userModels.UserCreate):
     return userModels.UserToDB(**combined_user)
 
 
-async def update_user(
+def update_user(
     user_id: int, user: userModels.UserUpdate, return_results: bool = True
 ):
     user_to_db = add_hashed_password(user)
     filtered_user_to_db = user_to_db.dict(exclude_unset=True)
-    return await crud.update(ITEM_TYPE, user_id, filtered_user_to_db, return_results)
+    return crud.update(ITEM_TYPE, user_id, filtered_user_to_db, return_results)
 
 
 def add_hashed_password(user: userModels.UserUpdate):
@@ -111,5 +111,5 @@ def add_hashed_password(user: userModels.UserUpdate):
     return userModels.UserUpdateToDB(**user_with_hash)
 
 
-async def delete_user(user_id: int, delete: bool = True, return_results: bool = True):
-    return await crud.delete(ITEM_TYPE, user_id, delete, return_results)
+def delete_user(user_id: int, delete: bool = True, return_results: bool = True):
+    return crud.delete(ITEM_TYPE, user_id, delete, return_results)

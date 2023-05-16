@@ -18,7 +18,7 @@ router = APIRouter(prefix="/messages")
 
 
 @router.get("", status_code=status.HTTP_200_OK)
-async def get_messages(
+def get_messages(
     id: int | None = None,
     exclude_id: bool = False,
     source_user_id: int | None = None,
@@ -55,7 +55,7 @@ async def get_messages(
     except error_wrappers.ValidationError as e:
         modelExceptionFuncs.raise_model_exception(e)
     else:
-        results = await messageFuncs.get_messages(message_criteria, user.id)
+        results = messageFuncs.get_messages(message_criteria, user.id)
         if not results.records:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -65,7 +65,7 @@ async def get_messages(
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def create_message(
+def create_message(
     message: messageModels.MessageCreate,
     return_results: bool = False,
     user: userModels.User = Depends(auth.get_current_user),
@@ -73,37 +73,37 @@ async def create_message(
     message_to_db = messageModels.MessageToDB(
         **message.dict() | {"source_user_id": user.id}
     )
-    results = await messageFuncs.create_message(message_to_db, return_results)
+    results = messageFuncs.create_message(message_to_db, return_results)
     return results.records[0] if return_results else None
 
 
 @router.patch("/{message_id}", status_code=status.HTTP_202_ACCEPTED)
-async def update_message(
+def update_message(
     message_update: messageModels.MessageUpdate,
     message_id: int = ValidateId,
     return_results: bool = False,
     user: userModels.User = Depends(auth.get_current_user),
 ):
-    message = await get_message_from_id(message_id, user.id)
+    message = get_message_from_id(message_id, user.id)
     verify_message_exists(message)
     verify_user_is_message_owner(user, message)
-    results = await messageFuncs.update_message(
+    results = messageFuncs.update_message(
         message_id, message_update, return_results
     )
     return results.records[0] if return_results else None
 
 
 @router.delete("/{message_id}", status_code=status.HTTP_202_ACCEPTED)
-async def delete_message(
+def delete_message(
     message_id: int = ValidateId,
     delete: bool = False,
     return_results: bool = False,
     user: userModels.User = Depends(auth.get_current_user),
 ):
-    message = await get_message_from_id(message_id)
+    message = get_message_from_id(message_id)
     verify_message_exists(message)
     verify_user_is_message_owner(user, message)
-    results = await messageFuncs.delete_message(message_id, delete, return_results)
+    results = messageFuncs.delete_message(message_id, delete, return_results)
     return results.records[0] if return_results else None
 
 
@@ -123,6 +123,6 @@ def verify_user_is_message_owner(user: userModels.User, message: database.ExecRe
         )
 
 
-async def get_message_from_id(message_id: int, user_id: int | None = None):
+def get_message_from_id(message_id: int, user_id: int | None = None):
     message_criteria = messageModels.MessageCriteria(id=message_id)
-    return await messageFuncs.get_messages(message_criteria, user_id)
+    return messageFuncs.get_messages(message_criteria, user_id)

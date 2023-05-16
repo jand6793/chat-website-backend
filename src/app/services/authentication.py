@@ -14,17 +14,17 @@ password_context = context.CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = security.OAuth2PasswordBearer(tokenUrl="token")
 
 
-async def authenticate_user(username: str, password: str):
-    user = await get_user(username)
+def authenticate_user(username: str, password: str):
+    user = get_user(username)
     if user and verify_password(password, user.hashed_password):
         return userModels.User(**user.dict())
     else:
         return None
 
 
-async def get_user(username: str):
+def get_user(username: str):
     user_criteria = userModels.UserCriteria(username=username)
-    user_results = await userFuncs.get_users(user_criteria, True)
+    user_results = userFuncs.get_users(user_criteria, True)
     if not user_results.records:
         return None
     user = userModels.UserInDB(**user_results.records[0])
@@ -57,7 +57,7 @@ credentials_exception = HTTPException(
 )
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(
             token,
@@ -72,7 +72,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             token_data = userModels.TokenData(username=username)
     except JWTError as e:
         raise credentials_exception from e
-    user = await get_user(token_data.username)
+    user = get_user(token_data.username)
     if user is None:
         raise credentials_exception
     else:
