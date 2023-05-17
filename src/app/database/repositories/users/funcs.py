@@ -71,7 +71,7 @@ def create_username_criteria_string(
 
 def get_users_by_ids(user_ids: Iterable[int], order_by: str = "id"):
     joined_ids = common.join_with_commas(user_ids)
-    criteria = f"id in ({joined_ids})"
+    criteria = f"{ITEM_TYPE}.id IN ({joined_ids})"
     return crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, order_by=order_by)
 
 
@@ -93,9 +93,7 @@ def create_user_to_db(user: userModels.UserCreate):
     return userModels.UserToDB(**combined_user)
 
 
-def update_user(
-    user_id: int, user: userModels.UserUpdate, return_results: bool = True
-):
+def update_user(user_id: int, user: userModels.UserUpdate, return_results: bool = True):
     user_to_db = add_hashed_password(user)
     filtered_user_to_db = user_to_db.dict(exclude_unset=True)
     return crud.update(ITEM_TYPE, user_id, filtered_user_to_db, return_results)
