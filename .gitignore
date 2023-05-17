@@ -4,3 +4,4 @@ server.build
 server.dist
 **/__pycache__/
 test.py
+frontend

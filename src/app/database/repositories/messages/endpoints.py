@@ -14,7 +14,7 @@ from app.models.validatorFuncs import ValidateId
 from app.services import authentication as auth
 
 
-router = APIRouter(prefix="/messages")
+router = APIRouter(prefix="/api/v1/messages", tags=["messages"])
 
 
 @router.get("", status_code=status.HTTP_200_OK)
@@ -87,9 +87,7 @@ def update_message(
     message = get_message_from_id(message_id, user.id)
     verify_message_exists(message)
     verify_user_is_message_owner(user, message)
-    results = messageFuncs.update_message(
-        message_id, message_update, return_results
-    )
+    results = messageFuncs.update_message(message_id, message_update, return_results)
     return results.records[0] if return_results else None
 
 
