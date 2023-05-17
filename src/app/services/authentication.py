@@ -11,7 +11,7 @@ from app.database.repositories.users import models as userModels
 
 
 password_context = context.CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = security.OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = security.OAuth2PasswordBearer(tokenUrl="api/v1/token")
 
 
 def authenticate_user(username: str, password: str):

@@ -10,7 +10,7 @@ from app.services import authentication as auth
 router = APIRouter(prefix="/api/v1/token", tags=["authentication"])
 
 
-@router.post("/", response_model=userModels.Token)
+@router.post("", response_model=userModels.Token)
 def login_for_access_token(
     form_data: security.OAuth2PasswordRequestForm = Depends(),
 ):
