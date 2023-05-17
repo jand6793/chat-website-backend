@@ -1,5 +1,7 @@
 from app import common
 from app.database.connection import crud
+from app.database.repositories.users import funcs as userFuncs
+from app.database.repositories.users import models as userModels
 from app.database.repositories.messages import (
     models as messageModels,
     ITEM_TYPE,
@@ -65,8 +67,14 @@ def create_criteria_strs(
 
 
 def create_message(
-    message: messageModels.MessageToDB, return_results: bool = False
+    user: userModels.User,
+    message: messageModels.MessageToDB,
+    return_results: bool = False,
 ):
+    other_user_ids = {message.source_user_id, message.target_user_id} - {user.id}
+    users = userFuncs.get_users_by_ids(other_user_ids)
+    if len(users.records) != 1:
+        return users.new(error=ValueError("Invalid source or target user ids"))
     return crud.insert(ITEM_TYPE, message, return_results)
 
 

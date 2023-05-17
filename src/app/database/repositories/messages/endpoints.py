@@ -73,7 +73,12 @@ def create_message(
     message_to_db = messageModels.MessageToDB(
         **message.dict() | {"source_user_id": user.id}
     )
-    results = messageFuncs.create_message(message_to_db, return_results)
+    results = messageFuncs.create_message(user, message_to_db, return_results)
+    if results.error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid source or target user ids",
+        )
     return results.records[0] if return_results else None
 
 
