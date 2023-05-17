@@ -13,7 +13,7 @@ from app.services import authentication as auth
 router = APIRouter(prefix="/api/v1/conversations", tags=["conversations"])
 
 
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get("", status_code=status.HTTP_200_OK)
 def get_conversations(
     user: userModels.User = Depends(auth.get_current_user),
 ):

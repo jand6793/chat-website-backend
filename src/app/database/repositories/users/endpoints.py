@@ -12,12 +12,12 @@ from app.services import authentication as auth
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
 
-@router.get("/users/me", response_model=userModels.User)
+@router.get("/me", response_model=userModels.User)
 def read_user_me(user: userModels.User = Depends(auth.get_current_user)):
     return user
 
 
-@router.get("/users", status_code=status.HTTP_200_OK)
+@router.get("", status_code=status.HTTP_200_OK)
 def get_users(
     id: int | None = None,
     exclude_id: bool = False,
@@ -64,7 +64,7 @@ def get_users(
         return {"items": results.records}
 
 
-@router.post("/users", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 def create_user(new_user: userModels.UserCreate, return_results: bool = False):
     results = userFuncs.create_user(new_user, return_results)
     if not results.error:
@@ -82,7 +82,7 @@ def create_user(new_user: userModels.UserCreate, return_results: bool = False):
         )
 
 
-@router.patch("/users/me", status_code=status.HTTP_202_ACCEPTED)
+@router.patch("/me", status_code=status.HTTP_202_ACCEPTED)
 def update_user_me(
     user_update: userModels.UserUpdate,
     return_results: bool = False,
@@ -92,7 +92,7 @@ def update_user_me(
     return items.records[0] if return_results else None
 
 
-@router.delete("/users/me", status_code=status.HTTP_202_ACCEPTED)
+@router.delete("/me", status_code=status.HTTP_202_ACCEPTED)
 def delete_user_me(
     delete: bool = False,
     return_results: bool = False,
