@@ -1,0 +1,12 @@
+jwt
+bcrypt
+wheel
+fastapi[all]
+python-multipart
+passlib[bcrypt]
+python-jose
+psycopg-pool
+psycopg[binary]
+uvicorn[standard]
+aiofiles
+black  # This was listed under [dev-packages]
