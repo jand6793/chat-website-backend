@@ -19,7 +19,7 @@ def get_application():
     app.add_event_handler("shutdown", database.close_backend_pool)
 
     app.include_router(routes.router)
-    origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    origins = ["*"]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -27,7 +27,7 @@ def get_application():
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.mount("/static", StaticFiles(directory=Path.cwd() / "frontend"), name="static")
+    app.mount("/static", StaticFiles(directory=Path.cwd().), name="static")
 
     return app
 
