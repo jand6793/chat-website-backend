@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from pydantic import Field, BaseSettings, SecretStr
@@ -21,7 +20,12 @@ class Config(BaseSettings):
     class Config:
         env_prefix = ""
         case_sensitive = True
-        env_file = f"{Path.cwd()}.env"
+        # Get the path to the directory of the current file
+        current_dir = Path(__file__).resolve().parent
+        # Traverse up the directory tree until the .env file is found
+        while not (current_dir / ".env").exists():
+            current_dir = current_dir.parent
+        env_file = f"{current_dir}/.env"
         env_file_encoding = "utf-8"
 
 
