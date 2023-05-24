@@ -7,4 +7,4 @@ router = APIRouter(tags=["home"])
 
 @router.get("/")
 def read_root():
-    return RedirectResponse(url="/static/home/page.html")
+    return RedirectResponse(url="/home/page.html")
