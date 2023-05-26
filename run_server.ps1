@@ -1,1 +1,1 @@
-pipenv run uvicorn src.app.api.server:app --reload
+uvicorn src.app.api.server:app --host 0.0.0.0 --port 8000
