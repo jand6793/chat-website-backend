@@ -1,0 +1,11 @@
+{
+    "name": "chat-website",
+    "dockerFile": "Dockerfile",
+    "forwardPorts": [8000, 5432],
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "ms-python.python"
+    ]
+}
