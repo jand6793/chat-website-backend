@@ -13,30 +13,25 @@ from app.services import authentication
 
 
 def get_users(user_criteria: userModels.UserCriteria, is_login: bool = False):
-    set_user_criteria = user_criteria.copy(update={"deleted": False})
-    criteria, values = create_user_criteria_string(set_user_criteria, is_login)
-    sort_by = baseModels.create_sort_by(ITEM_TYPE, set_user_criteria.sort_by)
+    criteria, values = create_user_criteria_key_value_pairs(user_criteria, is_login)
+    sort_by = baseModels.create_sort_by(ITEM_TYPE, user_criteria.sort_by)
     properties = combined_properties(is_login)
     return crud.select(ITEM_TYPE, properties, criteria, values, sort_by)
 
 
-def create_user_criteria_string(
+def create_user_criteria_key_value_pairs(
     user_criteria: userModels.UserCriteria, logging_in: bool
 ):
-    criteria_results = create_criteria_strs(user_criteria, logging_in)
-    criteria = common.get_true_values(criteria_results)
-    joined_criteria = common.join_with_and(criteria)
-    all_values = [
-        user_criteria.full_name,
-        user_criteria.username,
-        user_criteria.description,
-    ]
-    values = common.get_true_values(all_values)
-    return joined_criteria, values
+    criteria_results = create_criteria_key_value_pairs(user_criteria, logging_in)
+    criteria_keys, criteria_values = common.unzip(criteria_results)
+    joined_criteria = common.join_with_and(criteria_keys)
+    return joined_criteria, criteria_values
 
 
-def create_criteria_strs(user_criteria: userModels.UserCriteria, logging_in: bool):
-    return [
+def create_criteria_key_value_pairs(
+    user_criteria: userModels.UserCriteria, logging_in: bool
+):
+    criteria = [
         baseModels.create_similar_to_string(
             ITEM_TYPE,
             "full_name",
@@ -53,6 +48,7 @@ def create_criteria_strs(user_criteria: userModels.UserCriteria, logging_in: boo
             user_criteria.exclude_description,
         ),
     ] + baseModels.create_base_property_criterias(ITEM_TYPE, user_criteria)
+    return common.get_true_values(criteria)
 
 
 def combined_properties(is_login: bool):

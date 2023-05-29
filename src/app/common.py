@@ -13,3 +13,7 @@ def join_with_and(criteria: list[str]):
 
 def join_with_commas(values: Iterable[Any]):
     return ", ".join(str(v) for v in values) if values else ""
+
+
+def unzip(items: Iterable[Iterable[T]]) -> list[list[T]]:
+    return [list(t) for t in zip(*items)] if items else []

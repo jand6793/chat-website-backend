@@ -13,38 +13,32 @@ from app.models import baseModels
 def get_messages(
     message_criteria: messageModels.MessageCriteria, user_id: int | None = None
 ):
-    criteria, values = create_message_criteria_string(message_criteria, user_id)
+    criteria, values = create_message_criteria_key_value_pairs(
+        message_criteria, user_id
+    )
     sort_by = baseModels.create_sort_by(ITEM_TYPE, message_criteria.sort_by)
     return crud.select(ITEM_TYPE, BASE_PROPERTIES, criteria, values, sort_by)
 
 
-def create_message_criteria_string(
+def create_message_criteria_key_value_pairs(
     message_criteria: messageModels.MessageCriteria, user_id: int | None
 ):
-    criteria_results = create_criteria_strs(message_criteria, user_id)
-    criteria = common.get_true_values(criteria_results)
-    joined_criteria = common.join_with_and(criteria)
-    all_values = [
-        user_id,
-        user_id,
-        message_criteria.source_user_id,
-        message_criteria.target_user_id,
-        message_criteria.content,
-    ]
-    values = common.get_true_values(all_values)
-    return joined_criteria, values
-
-
-def create_criteria_strs(
-    message_criteria: messageModels.MessageCriteria, user_id: int | None
-):
-    user_id_criteria = (
-        f"({ITEM_TYPE}.source_user_id = %s OR {ITEM_TYPE}.target_user_id = %s)"
-        if user_id
-        else ""
+    criteria_results = create_criteria_key_value_pairs(
+        message_criteria, user_id
     )
-    return [
-        user_id_criteria,
+    criteria_keys, criteria_values = common.unzip(criteria_results)
+    joined_criteria = common.join_with_and(criteria_keys)
+    return joined_criteria, criteria_values
+
+
+def create_criteria_key_value_pairs(
+    message_criteria: messageModels.MessageCriteria, user_id: int | None
+):
+    criteria = [
+        (
+            f"({ITEM_TYPE}.source_user_id = %s OR {ITEM_TYPE}.target_user_id = %s)",
+            user_id or "",
+        ),
         baseModels.create_equals_non_string_string(
             ITEM_TYPE,
             "source_user_id",
@@ -64,6 +58,7 @@ def create_criteria_strs(
             message_criteria.exclude_content,
         ),
     ] + baseModels.create_base_property_criterias(ITEM_TYPE, message_criteria)
+    return common.get_true_values(criteria)
 
 
 def create_message(
