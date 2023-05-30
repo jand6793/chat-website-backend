@@ -31,11 +31,11 @@ COPY . .
 # Install dependencies
 RUN pip install -r requirements.txt
 
-# Set the password for the 'postgres' user, create backend user, and setup the database
-RUN chmod +x setup.sh
-
 # Make the container's ports 8000 and 5432 available to the outside world
 EXPOSE 8000 5432
 
-# Run setup.sh, start the postgresql server, and start the application
-CMD ./setup.sh && ./run_server.ps1
+# Set the password for the 'postgres' user, create backend user, and setup the database
+RUN chmod +x setup.sh
+
+# Start the postgresql server, and start the application
+CMD /chat-website-backend/setup.sh && /chat-website-backend/run_server.sh
