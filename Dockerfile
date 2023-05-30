@@ -36,6 +36,7 @@ EXPOSE 8000 5432
 
 # Set the password for the 'postgres' user, create backend user, and setup the database
 RUN chmod +x setup.sh
+RUN chmod +x run_server.sh
 
 # Start the postgresql server, and start the application
-CMD /chat-website-backend/setup.sh && /chat-website-backend/run_server.sh
+CMD ["sh", "-c", "/chat-website-backend/setup.sh && /chat-website-backend/run_server.sh"]
