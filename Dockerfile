@@ -39,4 +39,5 @@ RUN chmod +x setup.sh
 RUN chmod +x run_server.sh
 
 # Start the postgresql server, and start the application
-CMD ["sh", "-c", "/chat-website-backend/setup.sh && /chat-website-backend/run_server.sh"]
+CMD cd /chat-website-backend && ./setup.sh && ./run_server.sh
+# CMD ["sh", "-c", "/chat-website-backend/setup.sh && /chat-website-backend/run_server.sh"]
