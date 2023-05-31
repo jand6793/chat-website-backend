@@ -23,12 +23,11 @@ def get_messages(
 def create_message_criteria_key_value_pairs(
     message_criteria: messageModels.MessageCriteria, user_id: int | None
 ):
-    criteria_results = create_criteria_key_value_pairs(
-        message_criteria, user_id
-    )
+    criteria_results = create_criteria_key_value_pairs(message_criteria, user_id)
     criteria_keys, criteria_values = common.unzip(criteria_results)
+    flattened_criteria_values = common.flatten(criteria_values)
     joined_criteria = common.join_with_and(criteria_keys)
-    return joined_criteria, criteria_values
+    return joined_criteria, flattened_criteria_values
 
 
 def create_criteria_key_value_pairs(
@@ -37,7 +36,7 @@ def create_criteria_key_value_pairs(
     criteria = [
         (
             f"({ITEM_TYPE}.source_user_id = %s OR {ITEM_TYPE}.target_user_id = %s)",
-            user_id or "",
+            (user_id, user_id) or "",
         ),
         baseModels.create_equals_non_string_string(
             ITEM_TYPE,
