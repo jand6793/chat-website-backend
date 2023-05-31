@@ -23,6 +23,8 @@ def create_user_criteria_key_value_pairs(
     user_criteria: userModels.UserCriteria, logging_in: bool
 ):
     criteria_results = create_criteria_key_value_pairs(user_criteria, logging_in)
+    if not criteria_results:
+        return None, None
     criteria_keys, criteria_values = common.unzip(criteria_results)
     joined_criteria = common.join_with_and(criteria_keys)
     return joined_criteria, criteria_values
