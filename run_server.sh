@@ -7,4 +7,4 @@
 #   sleep 0.1 
 # done
 
-uvicorn src.app.api.server:app --host 0.0.0.0 --port 80
+uvicorn src.app.api.server:app --host 0.0.0.0 --port 8000

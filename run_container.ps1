@@ -1,1 +1,1 @@
-docker run -p 80:80 web-backend
+docker run -p 8000:8000 web-backend
