@@ -24,7 +24,8 @@ RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgres
 
 # # Clone the repository
 RUN git clone https://github.com/APills/KUCS351Group2.git
-RUN git checkout website-gui
+RUN cd KUCS351Group2 && git checkout website-gui
+RUN cd ..
 
 # Copy the rest of the application code to the working directory
 COPY . .
