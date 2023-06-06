@@ -23,7 +23,8 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql
 
 # # Clone the repository
-# RUN git clone https://github.com/APills/KUCS351Group2.git
+RUN git clone https://github.com/APills/KUCS351Group2.git
+RUN git checkout website-gui
 
 # Copy the rest of the application code to the working directory
 COPY . .
