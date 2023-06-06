@@ -34,7 +34,7 @@ COPY . .
 RUN pip install -r requirements.txt
 
 # Make the container's ports 8000 and 5432 available to the outside world
-EXPOSE 8000 5432
+EXPOSE 80
 
 # Set the password for the 'postgres' user, create backend user, and setup the database
 RUN chmod +x setup.sh
