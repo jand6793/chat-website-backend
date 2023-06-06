@@ -82,32 +82,32 @@ def create_message(
     return results.records[0] if return_results else None
 
 
-@router.patch("/{message_id}", status_code=status.HTTP_202_ACCEPTED)
-def update_message(
-    message_update: messageModels.MessageUpdate,
-    message_id: int = ValidateId,
-    return_results: bool = False,
-    user: userModels.User = Depends(auth.get_current_user),
-):
-    message = get_message_from_id(message_id, user.id)
-    verify_message_exists(message)
-    verify_user_is_message_owner(user, message)
-    results = messageFuncs.update_message(message_id, message_update, return_results)
-    return results.records[0] if return_results else None
+# @router.patch("/{message_id}", status_code=status.HTTP_202_ACCEPTED)
+# def update_message(
+#     message_update: messageModels.MessageUpdate,
+#     message_id: int = ValidateId,
+#     return_results: bool = False,
+#     user: userModels.User = Depends(auth.get_current_user),
+# ):
+#     message = get_message_from_id(message_id, user.id)
+#     verify_message_exists(message)
+#     verify_user_is_message_owner(user, message)
+#     results = messageFuncs.update_message(message_id, message_update, return_results)
+#     return results.records[0] if return_results else None
 
 
-@router.delete("/{message_id}", status_code=status.HTTP_202_ACCEPTED)
-def delete_message(
-    message_id: int = ValidateId,
-    delete: bool = False,
-    return_results: bool = False,
-    user: userModels.User = Depends(auth.get_current_user),
-):
-    message = get_message_from_id(message_id)
-    verify_message_exists(message)
-    verify_user_is_message_owner(user, message)
-    results = messageFuncs.delete_message(message_id, delete, return_results)
-    return results.records[0] if return_results else None
+# @router.delete("/{message_id}", status_code=status.HTTP_202_ACCEPTED)
+# def delete_message(
+#     message_id: int = ValidateId,
+#     delete: bool = False,
+#     return_results: bool = False,
+#     user: userModels.User = Depends(auth.get_current_user),
+# ):
+#     message = get_message_from_id(message_id)
+#     verify_message_exists(message)
+#     verify_user_is_message_owner(user, message)
+#     results = messageFuncs.delete_message(message_id, delete, return_results)
+#     return results.records[0] if return_results else None
 
 
 def verify_message_exists(message: database.ExecResult):

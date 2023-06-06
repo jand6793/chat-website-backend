@@ -27,11 +27,11 @@ def get_application():
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    # app.mount(
-    #     "/",
-    #     StaticFiles(directory=Path.cwd() / "KUCS351Group2" / "src"),
-    #     name="home",
-    # )
+    app.mount(
+        "/",
+        StaticFiles(directory=Path.cwd() / "KUCS351Group2" / "src"),
+        name="home",
+    )
 
     return app
 

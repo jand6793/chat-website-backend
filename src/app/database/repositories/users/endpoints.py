@@ -82,21 +82,21 @@ def create_user(new_user: userModels.UserCreate, return_results: bool = False):
         )
 
 
-@router.patch("/me", status_code=status.HTTP_202_ACCEPTED)
-def update_user_me(
-    user_update: userModels.UserUpdate,
-    return_results: bool = False,
-    user: userModels.User = Depends(auth.get_current_user),
-):
-    items = userFuncs.update_user(user.id, user_update, return_results)
-    return items.records[0] if return_results else None
+# @router.patch("/me", status_code=status.HTTP_202_ACCEPTED)
+# def update_user_me(
+#     user_update: userModels.UserUpdate,
+#     return_results: bool = False,
+#     user: userModels.User = Depends(auth.get_current_user),
+# ):
+#     items = userFuncs.update_user(user.id, user_update, return_results)
+#     return items.records[0] if return_results else None
 
 
-@router.delete("/me", status_code=status.HTTP_202_ACCEPTED)
-def delete_user_me(
-    delete: bool = False,
-    return_results: bool = False,
-    user: userModels.User = Depends(auth.get_current_user),
-):
-    results = userFuncs.delete_user(user.id, delete)
-    return results.records[0] if return_results else None
+# @router.delete("/me", status_code=status.HTTP_202_ACCEPTED)
+# def delete_user_me(
+#     delete: bool = False,
+#     return_results: bool = False,
+#     user: userModels.User = Depends(auth.get_current_user),
+# ):
+#     results = userFuncs.delete_user(user.id, delete)
+#     return results.records[0] if return_results else None
